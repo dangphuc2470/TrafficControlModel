@@ -1,0 +1,1772 @@
+[
+    {
+        "label": "xml.etree.ElementTree",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "xml.etree.ElementTree",
+        "description": "xml.etree.ElementTree",
+        "detail": "xml.etree.ElementTree",
+        "documentation": {}
+    },
+    {
+        "label": "random",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "random",
+        "description": "random",
+        "detail": "random",
+        "documentation": {}
+    },
+    {
+        "label": "requests",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "requests",
+        "description": "requests",
+        "detail": "requests",
+        "documentation": {}
+    },
+    {
+        "label": "json",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "json",
+        "description": "json",
+        "detail": "json",
+        "documentation": {}
+    },
+    {
+        "label": "time",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "time",
+        "description": "time",
+        "detail": "time",
+        "documentation": {}
+    },
+    {
+        "label": "socket",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "socket",
+        "description": "socket",
+        "detail": "socket",
+        "documentation": {}
+    },
+    {
+        "label": "threading",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "threading",
+        "description": "threading",
+        "detail": "threading",
+        "documentation": {}
+    },
+    {
+        "label": "os",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "os",
+        "description": "os",
+        "detail": "os",
+        "documentation": {}
+    },
+    {
+        "label": "numpy",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "numpy",
+        "description": "numpy",
+        "detail": "numpy",
+        "documentation": {}
+    },
+    {
+        "label": "math",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "math",
+        "description": "math",
+        "detail": "math",
+        "documentation": {}
+    },
+    {
+        "label": "tensorflow",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "tensorflow",
+        "description": "tensorflow",
+        "detail": "tensorflow",
+        "documentation": {}
+    },
+    {
+        "label": "keras",
+        "importPath": "tensorflow",
+        "description": "tensorflow",
+        "isExtraImport": true,
+        "detail": "tensorflow",
+        "documentation": {}
+    },
+    {
+        "label": "keras",
+        "importPath": "tensorflow",
+        "description": "tensorflow",
+        "isExtraImport": true,
+        "detail": "tensorflow",
+        "documentation": {}
+    },
+    {
+        "label": "sys",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "sys",
+        "description": "sys",
+        "detail": "sys",
+        "documentation": {}
+    },
+    {
+        "label": "layers",
+        "importPath": "tensorflow.keras",
+        "description": "tensorflow.keras",
+        "isExtraImport": true,
+        "detail": "tensorflow.keras",
+        "documentation": {}
+    },
+    {
+        "label": "losses",
+        "importPath": "tensorflow.keras",
+        "description": "tensorflow.keras",
+        "isExtraImport": true,
+        "detail": "tensorflow.keras",
+        "documentation": {}
+    },
+    {
+        "label": "layers",
+        "importPath": "tensorflow.keras",
+        "description": "tensorflow.keras",
+        "isExtraImport": true,
+        "detail": "tensorflow.keras",
+        "documentation": {}
+    },
+    {
+        "label": "losses",
+        "importPath": "tensorflow.keras",
+        "description": "tensorflow.keras",
+        "isExtraImport": true,
+        "detail": "tensorflow.keras",
+        "documentation": {}
+    },
+    {
+        "label": "Adam",
+        "importPath": "tensorflow.keras.optimizers",
+        "description": "tensorflow.keras.optimizers",
+        "isExtraImport": true,
+        "detail": "tensorflow.keras.optimizers",
+        "documentation": {}
+    },
+    {
+        "label": "Adam",
+        "importPath": "tensorflow.keras.optimizers",
+        "description": "tensorflow.keras.optimizers",
+        "isExtraImport": true,
+        "detail": "tensorflow.keras.optimizers",
+        "documentation": {}
+    },
+    {
+        "label": "plot_model",
+        "importPath": "tensorflow.keras.utils",
+        "description": "tensorflow.keras.utils",
+        "isExtraImport": true,
+        "detail": "tensorflow.keras.utils",
+        "documentation": {}
+    },
+    {
+        "label": "plot_model",
+        "importPath": "tensorflow.keras.utils",
+        "description": "tensorflow.keras.utils",
+        "isExtraImport": true,
+        "detail": "tensorflow.keras.utils",
+        "documentation": {}
+    },
+    {
+        "label": "load_model",
+        "importPath": "tensorflow.keras.models",
+        "description": "tensorflow.keras.models",
+        "isExtraImport": true,
+        "detail": "tensorflow.keras.models",
+        "documentation": {}
+    },
+    {
+        "label": "load_model",
+        "importPath": "tensorflow.keras.models",
+        "description": "tensorflow.keras.models",
+        "isExtraImport": true,
+        "detail": "tensorflow.keras.models",
+        "documentation": {}
+    },
+    {
+        "label": "absolute_import",
+        "importPath": "__future__",
+        "description": "__future__",
+        "isExtraImport": true,
+        "detail": "__future__",
+        "documentation": {}
+    },
+    {
+        "label": "print_function",
+        "importPath": "__future__",
+        "description": "__future__",
+        "isExtraImport": true,
+        "detail": "__future__",
+        "documentation": {}
+    },
+    {
+        "label": "absolute_import",
+        "importPath": "__future__",
+        "description": "__future__",
+        "isExtraImport": true,
+        "detail": "__future__",
+        "documentation": {}
+    },
+    {
+        "label": "print_function",
+        "importPath": "__future__",
+        "description": "__future__",
+        "isExtraImport": true,
+        "detail": "__future__",
+        "documentation": {}
+    },
+    {
+        "label": "absolute_import",
+        "importPath": "__future__",
+        "description": "__future__",
+        "isExtraImport": true,
+        "detail": "__future__",
+        "documentation": {}
+    },
+    {
+        "label": "print_function",
+        "importPath": "__future__",
+        "description": "__future__",
+        "isExtraImport": true,
+        "detail": "__future__",
+        "documentation": {}
+    },
+    {
+        "label": "absolute_import",
+        "importPath": "__future__",
+        "description": "__future__",
+        "isExtraImport": true,
+        "detail": "__future__",
+        "documentation": {}
+    },
+    {
+        "label": "print_function",
+        "importPath": "__future__",
+        "description": "__future__",
+        "isExtraImport": true,
+        "detail": "__future__",
+        "documentation": {}
+    },
+    {
+        "label": "absolute_import",
+        "importPath": "__future__",
+        "description": "__future__",
+        "isExtraImport": true,
+        "detail": "__future__",
+        "documentation": {}
+    },
+    {
+        "label": "print_function",
+        "importPath": "__future__",
+        "description": "__future__",
+        "isExtraImport": true,
+        "detail": "__future__",
+        "documentation": {}
+    },
+    {
+        "label": "absolute_import",
+        "importPath": "__future__",
+        "description": "__future__",
+        "isExtraImport": true,
+        "detail": "__future__",
+        "documentation": {}
+    },
+    {
+        "label": "print_function",
+        "importPath": "__future__",
+        "description": "__future__",
+        "isExtraImport": true,
+        "detail": "__future__",
+        "documentation": {}
+    },
+    {
+        "label": "absolute_import",
+        "importPath": "__future__",
+        "description": "__future__",
+        "isExtraImport": true,
+        "detail": "__future__",
+        "documentation": {}
+    },
+    {
+        "label": "print_function",
+        "importPath": "__future__",
+        "description": "__future__",
+        "isExtraImport": true,
+        "detail": "__future__",
+        "documentation": {}
+    },
+    {
+        "label": "absolute_import",
+        "importPath": "__future__",
+        "description": "__future__",
+        "isExtraImport": true,
+        "detail": "__future__",
+        "documentation": {}
+    },
+    {
+        "label": "print_function",
+        "importPath": "__future__",
+        "description": "__future__",
+        "isExtraImport": true,
+        "detail": "__future__",
+        "documentation": {}
+    },
+    {
+        "label": "copyfile",
+        "importPath": "shutil",
+        "description": "shutil",
+        "isExtraImport": true,
+        "detail": "shutil",
+        "documentation": {}
+    },
+    {
+        "label": "copyfile",
+        "importPath": "shutil",
+        "description": "shutil",
+        "isExtraImport": true,
+        "detail": "shutil",
+        "documentation": {}
+    },
+    {
+        "label": "copyfile",
+        "importPath": "shutil",
+        "description": "shutil",
+        "isExtraImport": true,
+        "detail": "shutil",
+        "documentation": {}
+    },
+    {
+        "label": "copyfile",
+        "importPath": "shutil",
+        "description": "shutil",
+        "isExtraImport": true,
+        "detail": "shutil",
+        "documentation": {}
+    },
+    {
+        "label": "Simulation",
+        "importPath": "testing_simulation",
+        "description": "testing_simulation",
+        "isExtraImport": true,
+        "detail": "testing_simulation",
+        "documentation": {}
+    },
+    {
+        "label": "Simulation",
+        "importPath": "testing_simulation",
+        "description": "testing_simulation",
+        "isExtraImport": true,
+        "detail": "testing_simulation",
+        "documentation": {}
+    },
+    {
+        "label": "Simulation",
+        "importPath": "testing_simulation",
+        "description": "testing_simulation",
+        "isExtraImport": true,
+        "detail": "testing_simulation",
+        "documentation": {}
+    },
+    {
+        "label": "Simulation",
+        "importPath": "testing_simulation",
+        "description": "testing_simulation",
+        "isExtraImport": true,
+        "detail": "testing_simulation",
+        "documentation": {}
+    },
+    {
+        "label": "TrafficGenerator",
+        "importPath": "generator",
+        "description": "generator",
+        "isExtraImport": true,
+        "detail": "generator",
+        "documentation": {}
+    },
+    {
+        "label": "TrafficGenerator",
+        "importPath": "generator",
+        "description": "generator",
+        "isExtraImport": true,
+        "detail": "generator",
+        "documentation": {}
+    },
+    {
+        "label": "TrafficGenerator",
+        "importPath": "generator",
+        "description": "generator",
+        "isExtraImport": true,
+        "detail": "generator",
+        "documentation": {}
+    },
+    {
+        "label": "TrafficGenerator",
+        "importPath": "generator",
+        "description": "generator",
+        "isExtraImport": true,
+        "detail": "generator",
+        "documentation": {}
+    },
+    {
+        "label": "TrafficGenerator",
+        "importPath": "generator",
+        "description": "generator",
+        "isExtraImport": true,
+        "detail": "generator",
+        "documentation": {}
+    },
+    {
+        "label": "TrafficGenerator",
+        "importPath": "generator",
+        "description": "generator",
+        "isExtraImport": true,
+        "detail": "generator",
+        "documentation": {}
+    },
+    {
+        "label": "TrafficGenerator",
+        "importPath": "generator",
+        "description": "generator",
+        "isExtraImport": true,
+        "detail": "generator",
+        "documentation": {}
+    },
+    {
+        "label": "TrafficGenerator",
+        "importPath": "generator",
+        "description": "generator",
+        "isExtraImport": true,
+        "detail": "generator",
+        "documentation": {}
+    },
+    {
+        "label": "TestModel",
+        "importPath": "model",
+        "description": "model",
+        "isExtraImport": true,
+        "detail": "model",
+        "documentation": {}
+    },
+    {
+        "label": "TestModel",
+        "importPath": "model",
+        "description": "model",
+        "isExtraImport": true,
+        "detail": "model",
+        "documentation": {}
+    },
+    {
+        "label": "TrainModel",
+        "importPath": "model",
+        "description": "model",
+        "isExtraImport": true,
+        "detail": "model",
+        "documentation": {}
+    },
+    {
+        "label": "TrainModel",
+        "importPath": "model",
+        "description": "model",
+        "isExtraImport": true,
+        "detail": "model",
+        "documentation": {}
+    },
+    {
+        "label": "TestModel",
+        "importPath": "model",
+        "description": "model",
+        "isExtraImport": true,
+        "detail": "model",
+        "documentation": {}
+    },
+    {
+        "label": "TestModel",
+        "importPath": "model",
+        "description": "model",
+        "isExtraImport": true,
+        "detail": "model",
+        "documentation": {}
+    },
+    {
+        "label": "TrainModel",
+        "importPath": "model",
+        "description": "model",
+        "isExtraImport": true,
+        "detail": "model",
+        "documentation": {}
+    },
+    {
+        "label": "TrainModel",
+        "importPath": "model",
+        "description": "model",
+        "isExtraImport": true,
+        "detail": "model",
+        "documentation": {}
+    },
+    {
+        "label": "Visualization",
+        "importPath": "visualization",
+        "description": "visualization",
+        "isExtraImport": true,
+        "detail": "visualization",
+        "documentation": {}
+    },
+    {
+        "label": "Visualization",
+        "importPath": "visualization",
+        "description": "visualization",
+        "isExtraImport": true,
+        "detail": "visualization",
+        "documentation": {}
+    },
+    {
+        "label": "Visualization",
+        "importPath": "visualization",
+        "description": "visualization",
+        "isExtraImport": true,
+        "detail": "visualization",
+        "documentation": {}
+    },
+    {
+        "label": "Visualization",
+        "importPath": "visualization",
+        "description": "visualization",
+        "isExtraImport": true,
+        "detail": "visualization",
+        "documentation": {}
+    },
+    {
+        "label": "import_test_configuration",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "set_sumo",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "set_test_path",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "import_test_configuration",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "set_sumo",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "set_test_path",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "import_train_configuration",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "set_sumo",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "set_train_path",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "import_train_configuration",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "set_sumo",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "set_train_path",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "import_test_configuration",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "set_sumo",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "set_test_path",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "import_test_configuration",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "set_sumo",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "set_test_path",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "import_train_configuration",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "set_sumo",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "set_train_path",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "import_train_configuration",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "set_sumo",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "set_train_path",
+        "importPath": "utils",
+        "description": "utils",
+        "isExtraImport": true,
+        "detail": "utils",
+        "documentation": {}
+    },
+    {
+        "label": "traci",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "traci",
+        "description": "traci",
+        "detail": "traci",
+        "documentation": {}
+    },
+    {
+        "label": "timeit",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "timeit",
+        "description": "timeit",
+        "detail": "timeit",
+        "documentation": {}
+    },
+    {
+        "label": "datetime",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "datetime",
+        "description": "datetime",
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "datetime",
+        "importPath": "datetime",
+        "description": "datetime",
+        "isExtraImport": true,
+        "detail": "datetime",
+        "documentation": {}
+    },
+    {
+        "label": "configparser",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "configparser",
+        "description": "configparser",
+        "detail": "configparser",
+        "documentation": {}
+    },
+    {
+        "label": "AgentCommunicatorTesting",
+        "importPath": "agent_communicator",
+        "description": "agent_communicator",
+        "isExtraImport": true,
+        "detail": "agent_communicator",
+        "documentation": {}
+    },
+    {
+        "label": "AgentCommunicatorTraining",
+        "importPath": "agent_communicator",
+        "description": "agent_communicator",
+        "isExtraImport": true,
+        "detail": "agent_communicator",
+        "documentation": {}
+    },
+    {
+        "label": "AgentCommunicatorTraining",
+        "importPath": "agent_communicator",
+        "description": "agent_communicator",
+        "isExtraImport": true,
+        "detail": "agent_communicator",
+        "documentation": {}
+    },
+    {
+        "label": "AgentCommunicator",
+        "importPath": "agent_communicator",
+        "description": "agent_communicator",
+        "isExtraImport": true,
+        "detail": "agent_communicator",
+        "documentation": {}
+    },
+    {
+        "label": "Simulation",
+        "importPath": "agent.training_simulation",
+        "description": "agent.training_simulation",
+        "isExtraImport": true,
+        "detail": "agent.training_simulation",
+        "documentation": {}
+    },
+    {
+        "label": "Simulation",
+        "importPath": "agent.training_simulation",
+        "description": "agent.training_simulation",
+        "isExtraImport": true,
+        "detail": "agent.training_simulation",
+        "documentation": {}
+    },
+    {
+        "label": "Memory",
+        "importPath": "memory",
+        "description": "memory",
+        "isExtraImport": true,
+        "detail": "memory",
+        "documentation": {}
+    },
+    {
+        "label": "Memory",
+        "importPath": "memory",
+        "description": "memory",
+        "isExtraImport": true,
+        "detail": "memory",
+        "documentation": {}
+    },
+    {
+        "label": "Memory",
+        "importPath": "memory",
+        "description": "memory",
+        "isExtraImport": true,
+        "detail": "memory",
+        "documentation": {}
+    },
+    {
+        "label": "Memory",
+        "importPath": "memory",
+        "description": "memory",
+        "isExtraImport": true,
+        "detail": "memory",
+        "documentation": {}
+    },
+    {
+        "label": "Simulation",
+        "importPath": "training_simulation",
+        "description": "training_simulation",
+        "isExtraImport": true,
+        "detail": "training_simulation",
+        "documentation": {}
+    },
+    {
+        "label": "Simulation",
+        "importPath": "training_simulation",
+        "description": "training_simulation",
+        "isExtraImport": true,
+        "detail": "training_simulation",
+        "documentation": {}
+    },
+    {
+        "label": "checkBinary",
+        "importPath": "sumolib",
+        "description": "sumolib",
+        "isExtraImport": true,
+        "detail": "sumolib",
+        "documentation": {}
+    },
+    {
+        "label": "checkBinary",
+        "importPath": "sumolib",
+        "description": "sumolib",
+        "isExtraImport": true,
+        "detail": "sumolib",
+        "documentation": {}
+    },
+    {
+        "label": "matplotlib.pyplot",
+        "kind": 6,
+        "isExtraImport": true,
+        "importPath": "matplotlib.pyplot",
+        "description": "matplotlib.pyplot",
+        "detail": "matplotlib.pyplot",
+        "documentation": {}
+    },
+    {
+        "label": "AgentCommunicator",
+        "importPath": "agent.agent_communicator",
+        "description": "agent.agent_communicator",
+        "isExtraImport": true,
+        "detail": "agent.agent_communicator",
+        "documentation": {}
+    },
+    {
+        "label": "Flask",
+        "importPath": "flask",
+        "description": "flask",
+        "isExtraImport": true,
+        "detail": "flask",
+        "documentation": {}
+    },
+    {
+        "label": "request",
+        "importPath": "flask",
+        "description": "flask",
+        "isExtraImport": true,
+        "detail": "flask",
+        "documentation": {}
+    },
+    {
+        "label": "jsonify",
+        "importPath": "flask",
+        "description": "flask",
+        "isExtraImport": true,
+        "detail": "flask",
+        "documentation": {}
+    },
+    {
+        "label": "render_template",
+        "importPath": "flask",
+        "description": "flask",
+        "isExtraImport": true,
+        "detail": "flask",
+        "documentation": {}
+    },
+    {
+        "label": "send_from_directory",
+        "importPath": "flask",
+        "description": "flask",
+        "isExtraImport": true,
+        "detail": "flask",
+        "documentation": {}
+    },
+    {
+        "label": "CORS",
+        "importPath": "flask_cors",
+        "description": "flask_cors",
+        "isExtraImport": true,
+        "detail": "flask_cors",
+        "documentation": {}
+    },
+    {
+        "label": "gui_shapes",
+        "kind": 5,
+        "importPath": "agent_new.intersection.pythonas",
+        "description": "agent_new.intersection.pythonas",
+        "peekOfCode": "gui_shapes = [\"passenger\", \"bus\", \"truck\", \"motorcycle\", \"bicycle\", \"tram\"]\n# Filepath to the XML file\ninput_file = r\"f:\\P\\HK8\\Deep-QLearning-Agent-for-Traffic-Signal-Control\\TLCS\\intersection\\realold\\Deep-QLearning-Agent-for-Traffic-Signal-Control\\TLCS\\intersection\\episode_routes.rou.xml\"\noutput_file = r\"f:\\P\\HK8\\Deep-QLearning-Agent-for-Traffic-Signal-Control\\TLCS\\intersection\\realold\\Deep-QLearning-Agent-for-Traffic-Signal-Control\\TLCS\\intersection\\episode_routes_random_guiShape.rou.xml\"\n# Parse the XML file\ntree = ET.parse(input_file)\nroot = tree.getroot()\n# Iterate through all <vType> elements and assign a random guiShape\nfor vtype in root.findall(\"vType\"):\n    random_shape = random.choice(gui_shapes)",
+        "detail": "agent_new.intersection.pythonas",
+        "documentation": {}
+    },
+    {
+        "label": "input_file",
+        "kind": 5,
+        "importPath": "agent_new.intersection.pythonas",
+        "description": "agent_new.intersection.pythonas",
+        "peekOfCode": "input_file = r\"f:\\P\\HK8\\Deep-QLearning-Agent-for-Traffic-Signal-Control\\TLCS\\intersection\\realold\\Deep-QLearning-Agent-for-Traffic-Signal-Control\\TLCS\\intersection\\episode_routes.rou.xml\"\noutput_file = r\"f:\\P\\HK8\\Deep-QLearning-Agent-for-Traffic-Signal-Control\\TLCS\\intersection\\realold\\Deep-QLearning-Agent-for-Traffic-Signal-Control\\TLCS\\intersection\\episode_routes_random_guiShape.rou.xml\"\n# Parse the XML file\ntree = ET.parse(input_file)\nroot = tree.getroot()\n# Iterate through all <vType> elements and assign a random guiShape\nfor vtype in root.findall(\"vType\"):\n    random_shape = random.choice(gui_shapes)\n    vtype.set(\"guiShape\", random_shape)\n# Write the modified XML to a new file",
+        "detail": "agent_new.intersection.pythonas",
+        "documentation": {}
+    },
+    {
+        "label": "output_file",
+        "kind": 5,
+        "importPath": "agent_new.intersection.pythonas",
+        "description": "agent_new.intersection.pythonas",
+        "peekOfCode": "output_file = r\"f:\\P\\HK8\\Deep-QLearning-Agent-for-Traffic-Signal-Control\\TLCS\\intersection\\realold\\Deep-QLearning-Agent-for-Traffic-Signal-Control\\TLCS\\intersection\\episode_routes_random_guiShape.rou.xml\"\n# Parse the XML file\ntree = ET.parse(input_file)\nroot = tree.getroot()\n# Iterate through all <vType> elements and assign a random guiShape\nfor vtype in root.findall(\"vType\"):\n    random_shape = random.choice(gui_shapes)\n    vtype.set(\"guiShape\", random_shape)\n# Write the modified XML to a new file\ntree.write(output_file, encoding=\"utf-8\", xml_declaration=True)",
+        "detail": "agent_new.intersection.pythonas",
+        "documentation": {}
+    },
+    {
+        "label": "tree",
+        "kind": 5,
+        "importPath": "agent_new.intersection.pythonas",
+        "description": "agent_new.intersection.pythonas",
+        "peekOfCode": "tree = ET.parse(input_file)\nroot = tree.getroot()\n# Iterate through all <vType> elements and assign a random guiShape\nfor vtype in root.findall(\"vType\"):\n    random_shape = random.choice(gui_shapes)\n    vtype.set(\"guiShape\", random_shape)\n# Write the modified XML to a new file\ntree.write(output_file, encoding=\"utf-8\", xml_declaration=True)\nprint(f\"Random guiShapes have been assigned and saved to {output_file}\")",
+        "detail": "agent_new.intersection.pythonas",
+        "documentation": {}
+    },
+    {
+        "label": "root",
+        "kind": 5,
+        "importPath": "agent_new.intersection.pythonas",
+        "description": "agent_new.intersection.pythonas",
+        "peekOfCode": "root = tree.getroot()\n# Iterate through all <vType> elements and assign a random guiShape\nfor vtype in root.findall(\"vType\"):\n    random_shape = random.choice(gui_shapes)\n    vtype.set(\"guiShape\", random_shape)\n# Write the modified XML to a new file\ntree.write(output_file, encoding=\"utf-8\", xml_declaration=True)\nprint(f\"Random guiShapes have been assigned and saved to {output_file}\")",
+        "detail": "agent_new.intersection.pythonas",
+        "documentation": {}
+    },
+    {
+        "label": "AgentCommunicatorTraining",
+        "kind": 6,
+        "importPath": "agent_new.agent_communicator",
+        "description": "agent_new.agent_communicator",
+        "peekOfCode": "class AgentCommunicatorTraining:\n    def __init__(self, server_url, agent_id=None):\n        \"\"\"\n        Initialize the communicator with the server URL\n        Args:\n            server_url: URL of the central server\n            agent_id: Unique ID for this agent (if None, hostname will be used)\n        \"\"\"\n        self.server_url = server_url\n        self.agent_id = agent_id or socket.gethostname()",
+        "detail": "agent_new.agent_communicator",
+        "documentation": {}
+    },
+    {
+        "label": "AgentCommunicatorTesting",
+        "kind": 6,
+        "importPath": "agent_new.agent_communicator",
+        "description": "agent_new.agent_communicator",
+        "peekOfCode": "class AgentCommunicatorTesting:\n    \"\"\"Handles communication with the central server for reporting training/testing progress\"\"\"\n    def __init__(self, server_url, agent_id=None):\n        \"\"\"Initialize the communicator with server URL and agent ID\"\"\"\n        self.server_url = server_url\n        self.agent_id = agent_id if agent_id else socket.gethostname()\n        self.status = \"initialized\"\n        self.config = {}\n        self.rewards = []\n        self.queue_lengths = []",
+        "detail": "agent_new.agent_communicator",
+        "documentation": {}
+    },
+    {
+        "label": "TrafficGenerator",
+        "kind": 6,
+        "importPath": "agent_new.generator",
+        "description": "agent_new.generator",
+        "peekOfCode": "class TrafficGenerator:\n    def __init__(self, max_steps, n_cars_generated):\n        self._n_cars_generated = n_cars_generated  # how many cars per episode\n        self._max_steps = max_steps\n    def generate_routefile(self, seed):\n        \"\"\"\n        Generation of the route of every car for one episode\n        \"\"\" \n        np.random.seed(seed)  # make tests reproducible\n        # the generation of cars is distributed according to a weibull distribution",
+        "detail": "agent_new.generator",
+        "documentation": {}
+    },
+    {
+        "label": "Memory",
+        "kind": 6,
+        "importPath": "agent_new.memory",
+        "description": "agent_new.memory",
+        "peekOfCode": "class Memory:\n    def __init__(self, size_max, size_min):\n        self._samples = []\n        self._size_max = size_max\n        self._size_min = size_min\n    def add_sample(self, sample):\n        \"\"\"\n        Add a sample into the memory\n        \"\"\"\n        self._samples.append(sample)",
+        "detail": "agent_new.memory",
+        "documentation": {}
+    },
+    {
+        "label": "TrainModel",
+        "kind": 6,
+        "importPath": "agent_new.model",
+        "description": "agent_new.model",
+        "peekOfCode": "class TrainModel:\n    def __init__(self, num_layers, width, batch_size, learning_rate, input_dim, output_dim):\n        self._input_dim = input_dim\n        self._output_dim = output_dim\n        self._batch_size = batch_size\n        self._learning_rate = learning_rate\n        self._model = self._build_model(num_layers, width)\n    def _build_model(self, num_layers, width):\n        \"\"\"\n        Build and compile a fully connected deep neural network",
+        "detail": "agent_new.model",
+        "documentation": {}
+    },
+    {
+        "label": "TestModel",
+        "kind": 6,
+        "importPath": "agent_new.model",
+        "description": "agent_new.model",
+        "peekOfCode": "class TestModel:\n    def __init__(self, input_dim, model_path):\n        self._input_dim = input_dim\n        self._model = self._load_my_model(model_path)\n    def _load_my_model(self, model_folder_path):\n        \"\"\"\n        Load the model stored in the folder specified by the model number, if it exists\n        \"\"\"\n        model_file_path = os.path.join(model_folder_path, 'trained_model.h5')\n        if os.path.isfile(model_file_path):",
+        "detail": "agent_new.model",
+        "documentation": {}
+    },
+    {
+        "label": "loaded_model",
+        "kind": 5,
+        "importPath": "agent_new.open_model",
+        "description": "agent_new.open_model",
+        "peekOfCode": "loaded_model = tf.keras.models.load_model(r\"F:\\P\\HK8\\Deep-QLearning-Agent-for-Traffic-Signal-Control\\TLCS\\models\\model_5\\trained_model.h5\")",
+        "detail": "agent_new.open_model",
+        "documentation": {}
+    },
+    {
+        "label": "Simulation",
+        "kind": 6,
+        "importPath": "agent_new.testing_simulation",
+        "description": "agent_new.testing_simulation",
+        "peekOfCode": "class Simulation:\n    def __init__(self, Model, TrafficGen, sumo_cmd, max_steps, green_duration, yellow_duration, num_states, num_actions):\n        self._Model = Model\n        self._TrafficGen = TrafficGen\n        self._step = 0\n        self._sumo_cmd = sumo_cmd\n        self._max_steps = max_steps\n        self._green_duration = green_duration\n        self._yellow_duration = yellow_duration\n        self._num_states = num_states",
+        "detail": "agent_new.testing_simulation",
+        "documentation": {}
+    },
+    {
+        "label": "PHASE_NS_GREEN",
+        "kind": 5,
+        "importPath": "agent_new.testing_simulation",
+        "description": "agent_new.testing_simulation",
+        "peekOfCode": "PHASE_NS_GREEN = 0  # action 0 code 00\nPHASE_NS_YELLOW = 1\nPHASE_NSL_GREEN = 2  # action 1 code 01\nPHASE_NSL_YELLOW = 3\nPHASE_EW_GREEN = 4  # action 2 code 10\nPHASE_EW_YELLOW = 5\nPHASE_EWL_GREEN = 6  # action 3 code 11\nPHASE_EWL_YELLOW = 7\nclass Simulation:\n    def __init__(self, Model, TrafficGen, sumo_cmd, max_steps, green_duration, yellow_duration, num_states, num_actions):",
+        "detail": "agent_new.testing_simulation",
+        "documentation": {}
+    },
+    {
+        "label": "PHASE_NS_YELLOW",
+        "kind": 5,
+        "importPath": "agent_new.testing_simulation",
+        "description": "agent_new.testing_simulation",
+        "peekOfCode": "PHASE_NS_YELLOW = 1\nPHASE_NSL_GREEN = 2  # action 1 code 01\nPHASE_NSL_YELLOW = 3\nPHASE_EW_GREEN = 4  # action 2 code 10\nPHASE_EW_YELLOW = 5\nPHASE_EWL_GREEN = 6  # action 3 code 11\nPHASE_EWL_YELLOW = 7\nclass Simulation:\n    def __init__(self, Model, TrafficGen, sumo_cmd, max_steps, green_duration, yellow_duration, num_states, num_actions):\n        self._Model = Model",
+        "detail": "agent_new.testing_simulation",
+        "documentation": {}
+    },
+    {
+        "label": "PHASE_NSL_GREEN",
+        "kind": 5,
+        "importPath": "agent_new.testing_simulation",
+        "description": "agent_new.testing_simulation",
+        "peekOfCode": "PHASE_NSL_GREEN = 2  # action 1 code 01\nPHASE_NSL_YELLOW = 3\nPHASE_EW_GREEN = 4  # action 2 code 10\nPHASE_EW_YELLOW = 5\nPHASE_EWL_GREEN = 6  # action 3 code 11\nPHASE_EWL_YELLOW = 7\nclass Simulation:\n    def __init__(self, Model, TrafficGen, sumo_cmd, max_steps, green_duration, yellow_duration, num_states, num_actions):\n        self._Model = Model\n        self._TrafficGen = TrafficGen",
+        "detail": "agent_new.testing_simulation",
+        "documentation": {}
+    },
+    {
+        "label": "PHASE_NSL_YELLOW",
+        "kind": 5,
+        "importPath": "agent_new.testing_simulation",
+        "description": "agent_new.testing_simulation",
+        "peekOfCode": "PHASE_NSL_YELLOW = 3\nPHASE_EW_GREEN = 4  # action 2 code 10\nPHASE_EW_YELLOW = 5\nPHASE_EWL_GREEN = 6  # action 3 code 11\nPHASE_EWL_YELLOW = 7\nclass Simulation:\n    def __init__(self, Model, TrafficGen, sumo_cmd, max_steps, green_duration, yellow_duration, num_states, num_actions):\n        self._Model = Model\n        self._TrafficGen = TrafficGen\n        self._step = 0",
+        "detail": "agent_new.testing_simulation",
+        "documentation": {}
+    },
+    {
+        "label": "PHASE_EW_GREEN",
+        "kind": 5,
+        "importPath": "agent_new.testing_simulation",
+        "description": "agent_new.testing_simulation",
+        "peekOfCode": "PHASE_EW_GREEN = 4  # action 2 code 10\nPHASE_EW_YELLOW = 5\nPHASE_EWL_GREEN = 6  # action 3 code 11\nPHASE_EWL_YELLOW = 7\nclass Simulation:\n    def __init__(self, Model, TrafficGen, sumo_cmd, max_steps, green_duration, yellow_duration, num_states, num_actions):\n        self._Model = Model\n        self._TrafficGen = TrafficGen\n        self._step = 0\n        self._sumo_cmd = sumo_cmd",
+        "detail": "agent_new.testing_simulation",
+        "documentation": {}
+    },
+    {
+        "label": "PHASE_EW_YELLOW",
+        "kind": 5,
+        "importPath": "agent_new.testing_simulation",
+        "description": "agent_new.testing_simulation",
+        "peekOfCode": "PHASE_EW_YELLOW = 5\nPHASE_EWL_GREEN = 6  # action 3 code 11\nPHASE_EWL_YELLOW = 7\nclass Simulation:\n    def __init__(self, Model, TrafficGen, sumo_cmd, max_steps, green_duration, yellow_duration, num_states, num_actions):\n        self._Model = Model\n        self._TrafficGen = TrafficGen\n        self._step = 0\n        self._sumo_cmd = sumo_cmd\n        self._max_steps = max_steps",
+        "detail": "agent_new.testing_simulation",
+        "documentation": {}
+    },
+    {
+        "label": "PHASE_EWL_GREEN",
+        "kind": 5,
+        "importPath": "agent_new.testing_simulation",
+        "description": "agent_new.testing_simulation",
+        "peekOfCode": "PHASE_EWL_GREEN = 6  # action 3 code 11\nPHASE_EWL_YELLOW = 7\nclass Simulation:\n    def __init__(self, Model, TrafficGen, sumo_cmd, max_steps, green_duration, yellow_duration, num_states, num_actions):\n        self._Model = Model\n        self._TrafficGen = TrafficGen\n        self._step = 0\n        self._sumo_cmd = sumo_cmd\n        self._max_steps = max_steps\n        self._green_duration = green_duration",
+        "detail": "agent_new.testing_simulation",
+        "documentation": {}
+    },
+    {
+        "label": "PHASE_EWL_YELLOW",
+        "kind": 5,
+        "importPath": "agent_new.testing_simulation",
+        "description": "agent_new.testing_simulation",
+        "peekOfCode": "PHASE_EWL_YELLOW = 7\nclass Simulation:\n    def __init__(self, Model, TrafficGen, sumo_cmd, max_steps, green_duration, yellow_duration, num_states, num_actions):\n        self._Model = Model\n        self._TrafficGen = TrafficGen\n        self._step = 0\n        self._sumo_cmd = sumo_cmd\n        self._max_steps = max_steps\n        self._green_duration = green_duration\n        self._yellow_duration = yellow_duration",
+        "detail": "agent_new.testing_simulation",
+        "documentation": {}
+    },
+    {
+        "label": "TestingSimulationWithServer",
+        "kind": 6,
+        "importPath": "agent_new.test_with_server",
+        "description": "agent_new.test_with_server",
+        "peekOfCode": "class TestingSimulationWithServer(Simulation):\n    def __init__(self, Model, TrafficGen, sumo_cmd, max_steps, green_duration, \n                 yellow_duration, num_states, num_actions, server_url=None, agent_id=None):\n        # Call the parent constructor\n        super().__init__(Model, TrafficGen, sumo_cmd, max_steps, green_duration, \n                         yellow_duration, num_states, num_actions)\n        # Initialize server communication if URL is provided\n        self._server_url = server_url\n        self._agent_id = agent_id\n        if server_url:",
+        "detail": "agent_new.test_with_server",
+        "documentation": {}
+    },
+    {
+        "label": "read_server_config",
+        "kind": 2,
+        "importPath": "agent_new.test_with_server",
+        "description": "agent_new.test_with_server",
+        "peekOfCode": "def read_server_config(config_file='server_config.ini'):\n    \"\"\"Read the server configuration file\"\"\"\n    if not os.path.exists(config_file):\n        return None, None\n    config = configparser.ConfigParser()\n    config.read(config_file)\n    if 'server' not in config:\n        return None, None\n    if not config['server'].getboolean('enabled', fallback=False):\n        return None, None",
+        "detail": "agent_new.test_with_server",
+        "documentation": {}
+    },
+    {
+        "label": "Simulation",
+        "kind": 6,
+        "importPath": "agent_new.training_simulation",
+        "description": "agent_new.training_simulation",
+        "peekOfCode": "class Simulation:\n    def __init__(self, Model, Memory, TrafficGen, sumo_cmd, gamma, max_steps, green_duration, yellow_duration, num_states, num_actions, training_epochs, server_url=None, agent_id=None):\n        self._Model = Model\n        self._Memory = Memory\n        self._TrafficGen = TrafficGen\n        self._gamma = gamma\n        self._step = 0\n        self._sumo_cmd = sumo_cmd\n        self._max_steps = max_steps\n        self._green_duration = green_duration",
+        "detail": "agent_new.training_simulation",
+        "documentation": {}
+    },
+    {
+        "label": "PHASE_NS_GREEN",
+        "kind": 5,
+        "importPath": "agent_new.training_simulation",
+        "description": "agent_new.training_simulation",
+        "peekOfCode": "PHASE_NS_GREEN = 0  # action 0 code 00\nPHASE_NS_YELLOW = 1\nPHASE_NSL_GREEN = 2  # action 1 code 01\nPHASE_NSL_YELLOW = 3\nPHASE_EW_GREEN = 4  # action 2 code 10\nPHASE_EW_YELLOW = 5\nPHASE_EWL_GREEN = 6  # action 3 code 11\nPHASE_EWL_YELLOW = 7\nclass Simulation:\n    def __init__(self, Model, Memory, TrafficGen, sumo_cmd, gamma, max_steps, green_duration, yellow_duration, num_states, num_actions, training_epochs, server_url=None, agent_id=None):",
+        "detail": "agent_new.training_simulation",
+        "documentation": {}
+    },
+    {
+        "label": "PHASE_NS_YELLOW",
+        "kind": 5,
+        "importPath": "agent_new.training_simulation",
+        "description": "agent_new.training_simulation",
+        "peekOfCode": "PHASE_NS_YELLOW = 1\nPHASE_NSL_GREEN = 2  # action 1 code 01\nPHASE_NSL_YELLOW = 3\nPHASE_EW_GREEN = 4  # action 2 code 10\nPHASE_EW_YELLOW = 5\nPHASE_EWL_GREEN = 6  # action 3 code 11\nPHASE_EWL_YELLOW = 7\nclass Simulation:\n    def __init__(self, Model, Memory, TrafficGen, sumo_cmd, gamma, max_steps, green_duration, yellow_duration, num_states, num_actions, training_epochs, server_url=None, agent_id=None):\n        self._Model = Model",
+        "detail": "agent_new.training_simulation",
+        "documentation": {}
+    },
+    {
+        "label": "PHASE_NSL_GREEN",
+        "kind": 5,
+        "importPath": "agent_new.training_simulation",
+        "description": "agent_new.training_simulation",
+        "peekOfCode": "PHASE_NSL_GREEN = 2  # action 1 code 01\nPHASE_NSL_YELLOW = 3\nPHASE_EW_GREEN = 4  # action 2 code 10\nPHASE_EW_YELLOW = 5\nPHASE_EWL_GREEN = 6  # action 3 code 11\nPHASE_EWL_YELLOW = 7\nclass Simulation:\n    def __init__(self, Model, Memory, TrafficGen, sumo_cmd, gamma, max_steps, green_duration, yellow_duration, num_states, num_actions, training_epochs, server_url=None, agent_id=None):\n        self._Model = Model\n        self._Memory = Memory",
+        "detail": "agent_new.training_simulation",
+        "documentation": {}
+    },
+    {
+        "label": "PHASE_NSL_YELLOW",
+        "kind": 5,
+        "importPath": "agent_new.training_simulation",
+        "description": "agent_new.training_simulation",
+        "peekOfCode": "PHASE_NSL_YELLOW = 3\nPHASE_EW_GREEN = 4  # action 2 code 10\nPHASE_EW_YELLOW = 5\nPHASE_EWL_GREEN = 6  # action 3 code 11\nPHASE_EWL_YELLOW = 7\nclass Simulation:\n    def __init__(self, Model, Memory, TrafficGen, sumo_cmd, gamma, max_steps, green_duration, yellow_duration, num_states, num_actions, training_epochs, server_url=None, agent_id=None):\n        self._Model = Model\n        self._Memory = Memory\n        self._TrafficGen = TrafficGen",
+        "detail": "agent_new.training_simulation",
+        "documentation": {}
+    },
+    {
+        "label": "PHASE_EW_GREEN",
+        "kind": 5,
+        "importPath": "agent_new.training_simulation",
+        "description": "agent_new.training_simulation",
+        "peekOfCode": "PHASE_EW_GREEN = 4  # action 2 code 10\nPHASE_EW_YELLOW = 5\nPHASE_EWL_GREEN = 6  # action 3 code 11\nPHASE_EWL_YELLOW = 7\nclass Simulation:\n    def __init__(self, Model, Memory, TrafficGen, sumo_cmd, gamma, max_steps, green_duration, yellow_duration, num_states, num_actions, training_epochs, server_url=None, agent_id=None):\n        self._Model = Model\n        self._Memory = Memory\n        self._TrafficGen = TrafficGen\n        self._gamma = gamma",
+        "detail": "agent_new.training_simulation",
+        "documentation": {}
+    },
+    {
+        "label": "PHASE_EW_YELLOW",
+        "kind": 5,
+        "importPath": "agent_new.training_simulation",
+        "description": "agent_new.training_simulation",
+        "peekOfCode": "PHASE_EW_YELLOW = 5\nPHASE_EWL_GREEN = 6  # action 3 code 11\nPHASE_EWL_YELLOW = 7\nclass Simulation:\n    def __init__(self, Model, Memory, TrafficGen, sumo_cmd, gamma, max_steps, green_duration, yellow_duration, num_states, num_actions, training_epochs, server_url=None, agent_id=None):\n        self._Model = Model\n        self._Memory = Memory\n        self._TrafficGen = TrafficGen\n        self._gamma = gamma\n        self._step = 0",
+        "detail": "agent_new.training_simulation",
+        "documentation": {}
+    },
+    {
+        "label": "PHASE_EWL_GREEN",
+        "kind": 5,
+        "importPath": "agent_new.training_simulation",
+        "description": "agent_new.training_simulation",
+        "peekOfCode": "PHASE_EWL_GREEN = 6  # action 3 code 11\nPHASE_EWL_YELLOW = 7\nclass Simulation:\n    def __init__(self, Model, Memory, TrafficGen, sumo_cmd, gamma, max_steps, green_duration, yellow_duration, num_states, num_actions, training_epochs, server_url=None, agent_id=None):\n        self._Model = Model\n        self._Memory = Memory\n        self._TrafficGen = TrafficGen\n        self._gamma = gamma\n        self._step = 0\n        self._sumo_cmd = sumo_cmd",
+        "detail": "agent_new.training_simulation",
+        "documentation": {}
+    },
+    {
+        "label": "PHASE_EWL_YELLOW",
+        "kind": 5,
+        "importPath": "agent_new.training_simulation",
+        "description": "agent_new.training_simulation",
+        "peekOfCode": "PHASE_EWL_YELLOW = 7\nclass Simulation:\n    def __init__(self, Model, Memory, TrafficGen, sumo_cmd, gamma, max_steps, green_duration, yellow_duration, num_states, num_actions, training_epochs, server_url=None, agent_id=None):\n        self._Model = Model\n        self._Memory = Memory\n        self._TrafficGen = TrafficGen\n        self._gamma = gamma\n        self._step = 0\n        self._sumo_cmd = sumo_cmd\n        self._max_steps = max_steps",
+        "detail": "agent_new.training_simulation",
+        "documentation": {}
+    },
+    {
+        "label": "read_server_config",
+        "kind": 2,
+        "importPath": "agent_new.train_with_server",
+        "description": "agent_new.train_with_server",
+        "peekOfCode": "def read_server_config(config_file='server_config.ini'):\n    \"\"\"Read the server configuration file\"\"\"\n    if not os.path.exists(config_file):\n        return None, None\n    config = configparser.ConfigParser()\n    config.read(config_file)\n    if 'server' not in config:\n        return None, None\n    if not config['server'].getboolean('enabled', fallback=False):\n        return None, None",
+        "detail": "agent_new.train_with_server",
+        "documentation": {}
+    },
+    {
+        "label": "import_train_configuration",
+        "kind": 2,
+        "importPath": "agent_new.utils",
+        "description": "agent_new.utils",
+        "peekOfCode": "def import_train_configuration(config_file):\n    \"\"\"\n    Read the config file regarding the training and import its content\n    \"\"\"\n    content = configparser.ConfigParser()\n    content.read(config_file)\n    config = {}\n    config['gui'] = content['simulation'].getboolean('gui')\n    config['total_episodes'] = content['simulation'].getint('total_episodes')\n    config['max_steps'] = content['simulation'].getint('max_steps')",
+        "detail": "agent_new.utils",
+        "documentation": {}
+    },
+    {
+        "label": "import_test_configuration",
+        "kind": 2,
+        "importPath": "agent_new.utils",
+        "description": "agent_new.utils",
+        "peekOfCode": "def import_test_configuration(config_file):\n    \"\"\"\n    Read the config file regarding the testing and import its content\n    \"\"\"\n    content = configparser.ConfigParser()\n    content.read(config_file)\n    config = {}\n    config['gui'] = content['simulation'].getboolean('gui')\n    config['max_steps'] = content['simulation'].getint('max_steps')\n    config['n_cars_generated'] = content['simulation'].getint('n_cars_generated')",
+        "detail": "agent_new.utils",
+        "documentation": {}
+    },
+    {
+        "label": "set_sumo",
+        "kind": 2,
+        "importPath": "agent_new.utils",
+        "description": "agent_new.utils",
+        "peekOfCode": "def set_sumo(gui, sumocfg_file_name, max_steps):\n    \"\"\"\n    Configure various parameters of SUMO\n    \"\"\"\n    # sumo things - we need to import python modules from the $SUMO_HOME/tools directory\n    if 'SUMO_HOME' in os.environ:\n        tools = os.path.join(os.environ['SUMO_HOME'], 'tools')\n        sys.path.append(tools)\n    else:\n        sys.exit(\"please declare environment variable 'SUMO_HOME'\")",
+        "detail": "agent_new.utils",
+        "documentation": {}
+    },
+    {
+        "label": "set_train_path",
+        "kind": 2,
+        "importPath": "agent_new.utils",
+        "description": "agent_new.utils",
+        "peekOfCode": "def set_train_path(models_path_name):\n    \"\"\"\n    Create a new model path with an incremental integer, also considering previously created model paths\n    \"\"\"\n    models_path = os.path.join(os.getcwd(), models_path_name, '')\n    os.makedirs(os.path.dirname(models_path), exist_ok=True)\n    dir_content = os.listdir(models_path)\n    if dir_content:\n        previous_versions = [int(name.split(\"_\")[1]) for name in dir_content]\n        new_version = str(max(previous_versions) + 1)",
+        "detail": "agent_new.utils",
+        "documentation": {}
+    },
+    {
+        "label": "set_test_path",
+        "kind": 2,
+        "importPath": "agent_new.utils",
+        "description": "agent_new.utils",
+        "peekOfCode": "def set_test_path(models_path_name, model_n):\n    \"\"\"\n    Returns a model path that identifies the model number provided as argument and a newly created 'test' path\n    \"\"\"\n    model_folder_path = os.path.join(os.getcwd(), models_path_name, 'model_'+str(model_n), '')\n    if os.path.isdir(model_folder_path):    \n        plot_path = os.path.join(model_folder_path, 'test', '')\n        os.makedirs(os.path.dirname(plot_path), exist_ok=True)\n        return model_folder_path, plot_path\n    else: ",
+        "detail": "agent_new.utils",
+        "documentation": {}
+    },
+    {
+        "label": "Visualization",
+        "kind": 6,
+        "importPath": "agent_new.visualization",
+        "description": "agent_new.visualization",
+        "peekOfCode": "class Visualization:\n    def __init__(self, path, dpi):\n            self._path = path\n            self._dpi = dpi\n    def save_data_and_plot(self, data, filename, xlabel, ylabel):\n        \"\"\"\n        Produce a plot of performance of the agent over the session and save the relative data to txt\n        \"\"\"\n        min_val = min(data)\n        max_val = max(data)",
+        "detail": "agent_new.visualization",
+        "documentation": {}
+    },
+    {
+        "label": "gui_shapes",
+        "kind": 5,
+        "importPath": "agent_old.intersection.pythonas",
+        "description": "agent_old.intersection.pythonas",
+        "peekOfCode": "gui_shapes = [\"passenger\", \"bus\", \"truck\", \"motorcycle\", \"bicycle\", \"tram\"]\n# Filepath to the XML file\ninput_file = r\"f:\\P\\HK8\\Deep-QLearning-Agent-for-Traffic-Signal-Control\\TLCS\\intersection\\realold\\Deep-QLearning-Agent-for-Traffic-Signal-Control\\TLCS\\intersection\\episode_routes.rou.xml\"\noutput_file = r\"f:\\P\\HK8\\Deep-QLearning-Agent-for-Traffic-Signal-Control\\TLCS\\intersection\\realold\\Deep-QLearning-Agent-for-Traffic-Signal-Control\\TLCS\\intersection\\episode_routes_random_guiShape.rou.xml\"\n# Parse the XML file\ntree = ET.parse(input_file)\nroot = tree.getroot()\n# Iterate through all <vType> elements and assign a random guiShape\nfor vtype in root.findall(\"vType\"):\n    random_shape = random.choice(gui_shapes)",
+        "detail": "agent_old.intersection.pythonas",
+        "documentation": {}
+    },
+    {
+        "label": "input_file",
+        "kind": 5,
+        "importPath": "agent_old.intersection.pythonas",
+        "description": "agent_old.intersection.pythonas",
+        "peekOfCode": "input_file = r\"f:\\P\\HK8\\Deep-QLearning-Agent-for-Traffic-Signal-Control\\TLCS\\intersection\\realold\\Deep-QLearning-Agent-for-Traffic-Signal-Control\\TLCS\\intersection\\episode_routes.rou.xml\"\noutput_file = r\"f:\\P\\HK8\\Deep-QLearning-Agent-for-Traffic-Signal-Control\\TLCS\\intersection\\realold\\Deep-QLearning-Agent-for-Traffic-Signal-Control\\TLCS\\intersection\\episode_routes_random_guiShape.rou.xml\"\n# Parse the XML file\ntree = ET.parse(input_file)\nroot = tree.getroot()\n# Iterate through all <vType> elements and assign a random guiShape\nfor vtype in root.findall(\"vType\"):\n    random_shape = random.choice(gui_shapes)\n    vtype.set(\"guiShape\", random_shape)\n# Write the modified XML to a new file",
+        "detail": "agent_old.intersection.pythonas",
+        "documentation": {}
+    },
+    {
+        "label": "output_file",
+        "kind": 5,
+        "importPath": "agent_old.intersection.pythonas",
+        "description": "agent_old.intersection.pythonas",
+        "peekOfCode": "output_file = r\"f:\\P\\HK8\\Deep-QLearning-Agent-for-Traffic-Signal-Control\\TLCS\\intersection\\realold\\Deep-QLearning-Agent-for-Traffic-Signal-Control\\TLCS\\intersection\\episode_routes_random_guiShape.rou.xml\"\n# Parse the XML file\ntree = ET.parse(input_file)\nroot = tree.getroot()\n# Iterate through all <vType> elements and assign a random guiShape\nfor vtype in root.findall(\"vType\"):\n    random_shape = random.choice(gui_shapes)\n    vtype.set(\"guiShape\", random_shape)\n# Write the modified XML to a new file\ntree.write(output_file, encoding=\"utf-8\", xml_declaration=True)",
+        "detail": "agent_old.intersection.pythonas",
+        "documentation": {}
+    },
+    {
+        "label": "tree",
+        "kind": 5,
+        "importPath": "agent_old.intersection.pythonas",
+        "description": "agent_old.intersection.pythonas",
+        "peekOfCode": "tree = ET.parse(input_file)\nroot = tree.getroot()\n# Iterate through all <vType> elements and assign a random guiShape\nfor vtype in root.findall(\"vType\"):\n    random_shape = random.choice(gui_shapes)\n    vtype.set(\"guiShape\", random_shape)\n# Write the modified XML to a new file\ntree.write(output_file, encoding=\"utf-8\", xml_declaration=True)\nprint(f\"Random guiShapes have been assigned and saved to {output_file}\")",
+        "detail": "agent_old.intersection.pythonas",
+        "documentation": {}
+    },
+    {
+        "label": "root",
+        "kind": 5,
+        "importPath": "agent_old.intersection.pythonas",
+        "description": "agent_old.intersection.pythonas",
+        "peekOfCode": "root = tree.getroot()\n# Iterate through all <vType> elements and assign a random guiShape\nfor vtype in root.findall(\"vType\"):\n    random_shape = random.choice(gui_shapes)\n    vtype.set(\"guiShape\", random_shape)\n# Write the modified XML to a new file\ntree.write(output_file, encoding=\"utf-8\", xml_declaration=True)\nprint(f\"Random guiShapes have been assigned and saved to {output_file}\")",
+        "detail": "agent_old.intersection.pythonas",
+        "documentation": {}
+    },
+    {
+        "label": "AgentCommunicator",
+        "kind": 6,
+        "importPath": "agent_old.agent_communicator",
+        "description": "agent_old.agent_communicator",
+        "peekOfCode": "class AgentCommunicator:\n    def __init__(self, server_url, agent_id=None):\n        \"\"\"\n        Initialize the communicator with the server URL\n        Args:\n            server_url: URL of the central server\n            agent_id: Unique ID for this agent (if None, hostname will be used)\n        \"\"\"\n        self.server_url = server_url\n        self.agent_id = agent_id or socket.gethostname()",
+        "detail": "agent_old.agent_communicator",
+        "documentation": {}
+    },
+    {
+        "label": "TrafficGenerator",
+        "kind": 6,
+        "importPath": "agent_old.generator",
+        "description": "agent_old.generator",
+        "peekOfCode": "class TrafficGenerator:\n    def __init__(self, max_steps, n_cars_generated):\n        self._n_cars_generated = n_cars_generated  # how many cars per episode\n        self._max_steps = max_steps\n    def generate_routefile(self, seed):\n        \"\"\"\n        Generation of the route of every car for one episode\n        \"\"\" \n        np.random.seed(seed)  # make tests reproducible\n        # the generation of cars is distributed according to a weibull distribution",
+        "detail": "agent_old.generator",
+        "documentation": {}
+    },
+    {
+        "label": "Memory",
+        "kind": 6,
+        "importPath": "agent_old.memory",
+        "description": "agent_old.memory",
+        "peekOfCode": "class Memory:\n    def __init__(self, size_max, size_min):\n        self._samples = []\n        self._size_max = size_max\n        self._size_min = size_min\n    def add_sample(self, sample):\n        \"\"\"\n        Add a sample into the memory\n        \"\"\"\n        self._samples.append(sample)",
+        "detail": "agent_old.memory",
+        "documentation": {}
+    },
+    {
+        "label": "TrainModel",
+        "kind": 6,
+        "importPath": "agent_old.model",
+        "description": "agent_old.model",
+        "peekOfCode": "class TrainModel:\n    def __init__(self, num_layers, width, batch_size, learning_rate, input_dim, output_dim):\n        self._input_dim = input_dim\n        self._output_dim = output_dim\n        self._batch_size = batch_size\n        self._learning_rate = learning_rate\n        self._model = self._build_model(num_layers, width)\n    def _build_model(self, num_layers, width):\n        \"\"\"\n        Build and compile a fully connected deep neural network",
+        "detail": "agent_old.model",
+        "documentation": {}
+    },
+    {
+        "label": "TestModel",
+        "kind": 6,
+        "importPath": "agent_old.model",
+        "description": "agent_old.model",
+        "peekOfCode": "class TestModel:\n    def __init__(self, input_dim, model_path):\n        self._input_dim = input_dim\n        self._model = self._load_my_model(model_path)\n    def _load_my_model(self, model_folder_path):\n        \"\"\"\n        Load the model stored in the folder specified by the model number, if it exists\n        \"\"\"\n        model_file_path = os.path.join(model_folder_path, 'trained_model.h5')\n        if os.path.isfile(model_file_path):",
+        "detail": "agent_old.model",
+        "documentation": {}
+    },
+    {
+        "label": "loaded_model",
+        "kind": 5,
+        "importPath": "agent_old.open_model",
+        "description": "agent_old.open_model",
+        "peekOfCode": "loaded_model = tf.keras.models.load_model(r\"F:\\P\\HK8\\Deep-QLearning-Agent-for-Traffic-Signal-Control\\TLCS\\models\\model_5\\trained_model.h5\")",
+        "detail": "agent_old.open_model",
+        "documentation": {}
+    },
+    {
+        "label": "Simulation",
+        "kind": 6,
+        "importPath": "agent_old.testing_simulation",
+        "description": "agent_old.testing_simulation",
+        "peekOfCode": "class Simulation:\n    def __init__(self, Model, TrafficGen, sumo_cmd, max_steps, green_duration, yellow_duration, num_states, num_actions):\n        self._Model = Model\n        self._TrafficGen = TrafficGen\n        self._step = 0\n        self._sumo_cmd = sumo_cmd\n        self._max_steps = max_steps\n        self._green_duration = green_duration\n        self._yellow_duration = yellow_duration\n        self._num_states = num_states",
+        "detail": "agent_old.testing_simulation",
+        "documentation": {}
+    },
+    {
+        "label": "PHASE_NS_GREEN",
+        "kind": 5,
+        "importPath": "agent_old.testing_simulation",
+        "description": "agent_old.testing_simulation",
+        "peekOfCode": "PHASE_NS_GREEN = 0  # action 0 code 00\nPHASE_NS_YELLOW = 1\nPHASE_NSL_GREEN = 2  # action 1 code 01\nPHASE_NSL_YELLOW = 3\nPHASE_EW_GREEN = 4  # action 2 code 10\nPHASE_EW_YELLOW = 5\nPHASE_EWL_GREEN = 6  # action 3 code 11\nPHASE_EWL_YELLOW = 7\nclass Simulation:\n    def __init__(self, Model, TrafficGen, sumo_cmd, max_steps, green_duration, yellow_duration, num_states, num_actions):",
+        "detail": "agent_old.testing_simulation",
+        "documentation": {}
+    },
+    {
+        "label": "PHASE_NS_YELLOW",
+        "kind": 5,
+        "importPath": "agent_old.testing_simulation",
+        "description": "agent_old.testing_simulation",
+        "peekOfCode": "PHASE_NS_YELLOW = 1\nPHASE_NSL_GREEN = 2  # action 1 code 01\nPHASE_NSL_YELLOW = 3\nPHASE_EW_GREEN = 4  # action 2 code 10\nPHASE_EW_YELLOW = 5\nPHASE_EWL_GREEN = 6  # action 3 code 11\nPHASE_EWL_YELLOW = 7\nclass Simulation:\n    def __init__(self, Model, TrafficGen, sumo_cmd, max_steps, green_duration, yellow_duration, num_states, num_actions):\n        self._Model = Model",
+        "detail": "agent_old.testing_simulation",
+        "documentation": {}
+    },
+    {
+        "label": "PHASE_NSL_GREEN",
+        "kind": 5,
+        "importPath": "agent_old.testing_simulation",
+        "description": "agent_old.testing_simulation",
+        "peekOfCode": "PHASE_NSL_GREEN = 2  # action 1 code 01\nPHASE_NSL_YELLOW = 3\nPHASE_EW_GREEN = 4  # action 2 code 10\nPHASE_EW_YELLOW = 5\nPHASE_EWL_GREEN = 6  # action 3 code 11\nPHASE_EWL_YELLOW = 7\nclass Simulation:\n    def __init__(self, Model, TrafficGen, sumo_cmd, max_steps, green_duration, yellow_duration, num_states, num_actions):\n        self._Model = Model\n        self._TrafficGen = TrafficGen",
+        "detail": "agent_old.testing_simulation",
+        "documentation": {}
+    },
+    {
+        "label": "PHASE_NSL_YELLOW",
+        "kind": 5,
+        "importPath": "agent_old.testing_simulation",
+        "description": "agent_old.testing_simulation",
+        "peekOfCode": "PHASE_NSL_YELLOW = 3\nPHASE_EW_GREEN = 4  # action 2 code 10\nPHASE_EW_YELLOW = 5\nPHASE_EWL_GREEN = 6  # action 3 code 11\nPHASE_EWL_YELLOW = 7\nclass Simulation:\n    def __init__(self, Model, TrafficGen, sumo_cmd, max_steps, green_duration, yellow_duration, num_states, num_actions):\n        self._Model = Model\n        self._TrafficGen = TrafficGen\n        self._step = 0",
+        "detail": "agent_old.testing_simulation",
+        "documentation": {}
+    },
+    {
+        "label": "PHASE_EW_GREEN",
+        "kind": 5,
+        "importPath": "agent_old.testing_simulation",
+        "description": "agent_old.testing_simulation",
+        "peekOfCode": "PHASE_EW_GREEN = 4  # action 2 code 10\nPHASE_EW_YELLOW = 5\nPHASE_EWL_GREEN = 6  # action 3 code 11\nPHASE_EWL_YELLOW = 7\nclass Simulation:\n    def __init__(self, Model, TrafficGen, sumo_cmd, max_steps, green_duration, yellow_duration, num_states, num_actions):\n        self._Model = Model\n        self._TrafficGen = TrafficGen\n        self._step = 0\n        self._sumo_cmd = sumo_cmd",
+        "detail": "agent_old.testing_simulation",
+        "documentation": {}
+    },
+    {
+        "label": "PHASE_EW_YELLOW",
+        "kind": 5,
+        "importPath": "agent_old.testing_simulation",
+        "description": "agent_old.testing_simulation",
+        "peekOfCode": "PHASE_EW_YELLOW = 5\nPHASE_EWL_GREEN = 6  # action 3 code 11\nPHASE_EWL_YELLOW = 7\nclass Simulation:\n    def __init__(self, Model, TrafficGen, sumo_cmd, max_steps, green_duration, yellow_duration, num_states, num_actions):\n        self._Model = Model\n        self._TrafficGen = TrafficGen\n        self._step = 0\n        self._sumo_cmd = sumo_cmd\n        self._max_steps = max_steps",
+        "detail": "agent_old.testing_simulation",
+        "documentation": {}
+    },
+    {
+        "label": "PHASE_EWL_GREEN",
+        "kind": 5,
+        "importPath": "agent_old.testing_simulation",
+        "description": "agent_old.testing_simulation",
+        "peekOfCode": "PHASE_EWL_GREEN = 6  # action 3 code 11\nPHASE_EWL_YELLOW = 7\nclass Simulation:\n    def __init__(self, Model, TrafficGen, sumo_cmd, max_steps, green_duration, yellow_duration, num_states, num_actions):\n        self._Model = Model\n        self._TrafficGen = TrafficGen\n        self._step = 0\n        self._sumo_cmd = sumo_cmd\n        self._max_steps = max_steps\n        self._green_duration = green_duration",
+        "detail": "agent_old.testing_simulation",
+        "documentation": {}
+    },
+    {
+        "label": "PHASE_EWL_YELLOW",
+        "kind": 5,
+        "importPath": "agent_old.testing_simulation",
+        "description": "agent_old.testing_simulation",
+        "peekOfCode": "PHASE_EWL_YELLOW = 7\nclass Simulation:\n    def __init__(self, Model, TrafficGen, sumo_cmd, max_steps, green_duration, yellow_duration, num_states, num_actions):\n        self._Model = Model\n        self._TrafficGen = TrafficGen\n        self._step = 0\n        self._sumo_cmd = sumo_cmd\n        self._max_steps = max_steps\n        self._green_duration = green_duration\n        self._yellow_duration = yellow_duration",
+        "detail": "agent_old.testing_simulation",
+        "documentation": {}
+    },
+    {
+        "label": "TestingSimulationWithServer",
+        "kind": 6,
+        "importPath": "agent_old.test_with_server",
+        "description": "agent_old.test_with_server",
+        "peekOfCode": "class TestingSimulationWithServer(Simulation):\n    def __init__(self, Model, TrafficGen, sumo_cmd, max_steps, green_duration, \n                 yellow_duration, num_states, num_actions, server_url=None, agent_id=None):\n        super().__init__(Model, TrafficGen, sumo_cmd, max_steps, green_duration, \n                         yellow_duration, num_states, num_actions)\n        # Initialize server communication if URL is provided\n        self.server_url = server_url\n        if server_url:\n            self.communicator = AgentCommunicator(server_url, agent_id)\n            self.communicator.update_status(\"test_initialized\")",
+        "detail": "agent_old.test_with_server",
+        "documentation": {}
+    },
+    {
+        "label": "read_server_config",
+        "kind": 2,
+        "importPath": "agent_old.test_with_server",
+        "description": "agent_old.test_with_server",
+        "peekOfCode": "def read_server_config(config_file='server_config.ini'):\n    \"\"\"Read the server configuration file\"\"\"\n    if not os.path.exists(config_file):\n        return None, None\n    config = configparser.ConfigParser()\n    config.read(config_file)\n    if 'server' not in config:\n        return None, None\n    if not config['server'].getboolean('enabled', fallback=False):\n        return None, None",
+        "detail": "agent_old.test_with_server",
+        "documentation": {}
+    },
+    {
+        "label": "Simulation",
+        "kind": 6,
+        "importPath": "agent_old.training_simulation",
+        "description": "agent_old.training_simulation",
+        "peekOfCode": "class Simulation:\n    def __init__(self, Model, Memory, TrafficGen, sumo_cmd, gamma, max_steps, green_duration, yellow_duration, num_states, num_actions, training_epochs, server_url=None, agent_id=None):\n        self._Model = Model\n        self._Memory = Memory\n        self._TrafficGen = TrafficGen\n        self._gamma = gamma\n        self._step = 0\n        self._sumo_cmd = sumo_cmd\n        self._max_steps = max_steps\n        self._green_duration = green_duration",
+        "detail": "agent_old.training_simulation",
+        "documentation": {}
+    },
+    {
+        "label": "PHASE_NS_GREEN",
+        "kind": 5,
+        "importPath": "agent_old.training_simulation",
+        "description": "agent_old.training_simulation",
+        "peekOfCode": "PHASE_NS_GREEN = 0  # action 0 code 00\nPHASE_NS_YELLOW = 1\nPHASE_NSL_GREEN = 2  # action 1 code 01\nPHASE_NSL_YELLOW = 3\nPHASE_EW_GREEN = 4  # action 2 code 10\nPHASE_EW_YELLOW = 5\nPHASE_EWL_GREEN = 6  # action 3 code 11\nPHASE_EWL_YELLOW = 7\nclass Simulation:\n    def __init__(self, Model, Memory, TrafficGen, sumo_cmd, gamma, max_steps, green_duration, yellow_duration, num_states, num_actions, training_epochs, server_url=None, agent_id=None):",
+        "detail": "agent_old.training_simulation",
+        "documentation": {}
+    },
+    {
+        "label": "PHASE_NS_YELLOW",
+        "kind": 5,
+        "importPath": "agent_old.training_simulation",
+        "description": "agent_old.training_simulation",
+        "peekOfCode": "PHASE_NS_YELLOW = 1\nPHASE_NSL_GREEN = 2  # action 1 code 01\nPHASE_NSL_YELLOW = 3\nPHASE_EW_GREEN = 4  # action 2 code 10\nPHASE_EW_YELLOW = 5\nPHASE_EWL_GREEN = 6  # action 3 code 11\nPHASE_EWL_YELLOW = 7\nclass Simulation:\n    def __init__(self, Model, Memory, TrafficGen, sumo_cmd, gamma, max_steps, green_duration, yellow_duration, num_states, num_actions, training_epochs, server_url=None, agent_id=None):\n        self._Model = Model",
+        "detail": "agent_old.training_simulation",
+        "documentation": {}
+    },
+    {
+        "label": "PHASE_NSL_GREEN",
+        "kind": 5,
+        "importPath": "agent_old.training_simulation",
+        "description": "agent_old.training_simulation",
+        "peekOfCode": "PHASE_NSL_GREEN = 2  # action 1 code 01\nPHASE_NSL_YELLOW = 3\nPHASE_EW_GREEN = 4  # action 2 code 10\nPHASE_EW_YELLOW = 5\nPHASE_EWL_GREEN = 6  # action 3 code 11\nPHASE_EWL_YELLOW = 7\nclass Simulation:\n    def __init__(self, Model, Memory, TrafficGen, sumo_cmd, gamma, max_steps, green_duration, yellow_duration, num_states, num_actions, training_epochs, server_url=None, agent_id=None):\n        self._Model = Model\n        self._Memory = Memory",
+        "detail": "agent_old.training_simulation",
+        "documentation": {}
+    },
+    {
+        "label": "PHASE_NSL_YELLOW",
+        "kind": 5,
+        "importPath": "agent_old.training_simulation",
+        "description": "agent_old.training_simulation",
+        "peekOfCode": "PHASE_NSL_YELLOW = 3\nPHASE_EW_GREEN = 4  # action 2 code 10\nPHASE_EW_YELLOW = 5\nPHASE_EWL_GREEN = 6  # action 3 code 11\nPHASE_EWL_YELLOW = 7\nclass Simulation:\n    def __init__(self, Model, Memory, TrafficGen, sumo_cmd, gamma, max_steps, green_duration, yellow_duration, num_states, num_actions, training_epochs, server_url=None, agent_id=None):\n        self._Model = Model\n        self._Memory = Memory\n        self._TrafficGen = TrafficGen",
+        "detail": "agent_old.training_simulation",
+        "documentation": {}
+    },
+    {
+        "label": "PHASE_EW_GREEN",
+        "kind": 5,
+        "importPath": "agent_old.training_simulation",
+        "description": "agent_old.training_simulation",
+        "peekOfCode": "PHASE_EW_GREEN = 4  # action 2 code 10\nPHASE_EW_YELLOW = 5\nPHASE_EWL_GREEN = 6  # action 3 code 11\nPHASE_EWL_YELLOW = 7\nclass Simulation:\n    def __init__(self, Model, Memory, TrafficGen, sumo_cmd, gamma, max_steps, green_duration, yellow_duration, num_states, num_actions, training_epochs, server_url=None, agent_id=None):\n        self._Model = Model\n        self._Memory = Memory\n        self._TrafficGen = TrafficGen\n        self._gamma = gamma",
+        "detail": "agent_old.training_simulation",
+        "documentation": {}
+    },
+    {
+        "label": "PHASE_EW_YELLOW",
+        "kind": 5,
+        "importPath": "agent_old.training_simulation",
+        "description": "agent_old.training_simulation",
+        "peekOfCode": "PHASE_EW_YELLOW = 5\nPHASE_EWL_GREEN = 6  # action 3 code 11\nPHASE_EWL_YELLOW = 7\nclass Simulation:\n    def __init__(self, Model, Memory, TrafficGen, sumo_cmd, gamma, max_steps, green_duration, yellow_duration, num_states, num_actions, training_epochs, server_url=None, agent_id=None):\n        self._Model = Model\n        self._Memory = Memory\n        self._TrafficGen = TrafficGen\n        self._gamma = gamma\n        self._step = 0",
+        "detail": "agent_old.training_simulation",
+        "documentation": {}
+    },
+    {
+        "label": "PHASE_EWL_GREEN",
+        "kind": 5,
+        "importPath": "agent_old.training_simulation",
+        "description": "agent_old.training_simulation",
+        "peekOfCode": "PHASE_EWL_GREEN = 6  # action 3 code 11\nPHASE_EWL_YELLOW = 7\nclass Simulation:\n    def __init__(self, Model, Memory, TrafficGen, sumo_cmd, gamma, max_steps, green_duration, yellow_duration, num_states, num_actions, training_epochs, server_url=None, agent_id=None):\n        self._Model = Model\n        self._Memory = Memory\n        self._TrafficGen = TrafficGen\n        self._gamma = gamma\n        self._step = 0\n        self._sumo_cmd = sumo_cmd",
+        "detail": "agent_old.training_simulation",
+        "documentation": {}
+    },
+    {
+        "label": "PHASE_EWL_YELLOW",
+        "kind": 5,
+        "importPath": "agent_old.training_simulation",
+        "description": "agent_old.training_simulation",
+        "peekOfCode": "PHASE_EWL_YELLOW = 7\nclass Simulation:\n    def __init__(self, Model, Memory, TrafficGen, sumo_cmd, gamma, max_steps, green_duration, yellow_duration, num_states, num_actions, training_epochs, server_url=None, agent_id=None):\n        self._Model = Model\n        self._Memory = Memory\n        self._TrafficGen = TrafficGen\n        self._gamma = gamma\n        self._step = 0\n        self._sumo_cmd = sumo_cmd\n        self._max_steps = max_steps",
+        "detail": "agent_old.training_simulation",
+        "documentation": {}
+    },
+    {
+        "label": "read_server_config",
+        "kind": 2,
+        "importPath": "agent_old.train_with_server",
+        "description": "agent_old.train_with_server",
+        "peekOfCode": "def read_server_config(config_file='server_config.ini'):\n    \"\"\"Read the server configuration file\"\"\"\n    if not os.path.exists(config_file):\n        return None, None\n    config = configparser.ConfigParser()\n    config.read(config_file)\n    if 'server' not in config:\n        return None, None\n    if not config['server'].getboolean('enabled', fallback=False):\n        return None, None",
+        "detail": "agent_old.train_with_server",
+        "documentation": {}
+    },
+    {
+        "label": "import_train_configuration",
+        "kind": 2,
+        "importPath": "agent_old.utils",
+        "description": "agent_old.utils",
+        "peekOfCode": "def import_train_configuration(config_file):\n    \"\"\"\n    Read the config file regarding the training and import its content\n    \"\"\"\n    content = configparser.ConfigParser()\n    content.read(config_file)\n    config = {}\n    config['gui'] = content['simulation'].getboolean('gui')\n    config['total_episodes'] = content['simulation'].getint('total_episodes')\n    config['max_steps'] = content['simulation'].getint('max_steps')",
+        "detail": "agent_old.utils",
+        "documentation": {}
+    },
+    {
+        "label": "import_test_configuration",
+        "kind": 2,
+        "importPath": "agent_old.utils",
+        "description": "agent_old.utils",
+        "peekOfCode": "def import_test_configuration(config_file):\n    \"\"\"\n    Read the config file regarding the testing and import its content\n    \"\"\"\n    content = configparser.ConfigParser()\n    content.read(config_file)\n    config = {}\n    config['gui'] = content['simulation'].getboolean('gui')\n    config['max_steps'] = content['simulation'].getint('max_steps')\n    config['n_cars_generated'] = content['simulation'].getint('n_cars_generated')",
+        "detail": "agent_old.utils",
+        "documentation": {}
+    },
+    {
+        "label": "set_sumo",
+        "kind": 2,
+        "importPath": "agent_old.utils",
+        "description": "agent_old.utils",
+        "peekOfCode": "def set_sumo(gui, sumocfg_file_name, max_steps):\n    \"\"\"\n    Configure various parameters of SUMO\n    \"\"\"\n    # sumo things - we need to import python modules from the $SUMO_HOME/tools directory\n    if 'SUMO_HOME' in os.environ:\n        tools = os.path.join(os.environ['SUMO_HOME'], 'tools')\n        sys.path.append(tools)\n    else:\n        sys.exit(\"please declare environment variable 'SUMO_HOME'\")",
+        "detail": "agent_old.utils",
+        "documentation": {}
+    },
+    {
+        "label": "set_train_path",
+        "kind": 2,
+        "importPath": "agent_old.utils",
+        "description": "agent_old.utils",
+        "peekOfCode": "def set_train_path(models_path_name):\n    \"\"\"\n    Create a new model path with an incremental integer, also considering previously created model paths\n    \"\"\"\n    models_path = os.path.join(os.getcwd(), models_path_name, '')\n    os.makedirs(os.path.dirname(models_path), exist_ok=True)\n    dir_content = os.listdir(models_path)\n    if dir_content:\n        previous_versions = [int(name.split(\"_\")[1]) for name in dir_content]\n        new_version = str(max(previous_versions) + 1)",
+        "detail": "agent_old.utils",
+        "documentation": {}
+    },
+    {
+        "label": "set_test_path",
+        "kind": 2,
+        "importPath": "agent_old.utils",
+        "description": "agent_old.utils",
+        "peekOfCode": "def set_test_path(models_path_name, model_n):\n    \"\"\"\n    Returns a model path that identifies the model number provided as argument and a newly created 'test' path\n    \"\"\"\n    model_folder_path = os.path.join(os.getcwd(), models_path_name, 'model_'+str(model_n), '')\n    if os.path.isdir(model_folder_path):    \n        plot_path = os.path.join(model_folder_path, 'test', '')\n        os.makedirs(os.path.dirname(plot_path), exist_ok=True)\n        return model_folder_path, plot_path\n    else: ",
+        "detail": "agent_old.utils",
+        "documentation": {}
+    },
+    {
+        "label": "Visualization",
+        "kind": 6,
+        "importPath": "agent_old.visualization",
+        "description": "agent_old.visualization",
+        "peekOfCode": "class Visualization:\n    def __init__(self, path, dpi):\n            self._path = path\n            self._dpi = dpi\n    def save_data_and_plot(self, data, filename, xlabel, ylabel):\n        \"\"\"\n        Produce a plot of performance of the agent over the session and save the relative data to txt\n        \"\"\"\n        min_val = min(data)\n        max_val = max(data)",
+        "detail": "agent_old.visualization",
+        "documentation": {}
+    },
+    {
+        "label": "save_data_periodically",
+        "kind": 2,
+        "importPath": "central_server.central_server",
+        "description": "central_server.central_server",
+        "peekOfCode": "def save_data_periodically():\n    \"\"\"Save collected data to disk periodically\"\"\"\n    while True:\n        # Save current data\n        with open('server_data/agent_data.json', 'w') as f:\n            json.dump(agent_data, f)\n        # Check for disconnected agents\n        current_time = time.time()\n        for agent_id, last_time in list(last_update.items()):\n            if current_time - last_time > TIMEOUT_THRESHOLD:",
+        "detail": "central_server.central_server",
+        "documentation": {}
+    },
+    {
+        "label": "generate_comparison_charts",
+        "kind": 2,
+        "importPath": "central_server.central_server",
+        "description": "central_server.central_server",
+        "peekOfCode": "def generate_comparison_charts():\n    \"\"\"Generate comparison charts from collected agent data\"\"\"\n    if not agent_data:\n        return\n    # Prepare data for plotting\n    agents = list(agent_data.keys())\n    rewards = {agent: data.get('rewards', []) for agent, data in agent_data.items() if 'rewards' in data}\n    queue_lengths = {agent: data.get('queue_lengths', []) for agent, data in agent_data.items() if 'queue_lengths' in data}\n    # Only plot if we have data\n    if rewards and any(len(r) > 0 for r in rewards.values()):",
+        "detail": "central_server.central_server",
+        "documentation": {}
+    },
+    {
+        "label": "index",
+        "kind": 2,
+        "importPath": "central_server.central_server",
+        "description": "central_server.central_server",
+        "peekOfCode": "def index():\n    \"\"\"Serve the main dashboard page\"\"\"\n    return render_template('index.html')\n@app.route('/static/<path:filename>')\ndef serve_static(filename):\n    \"\"\"Serve static files\"\"\"\n    return send_from_directory('static', filename)\n@app.route('/api/update', methods=['POST'])\ndef update_data():\n    \"\"\"Endpoint for agents to send their data\"\"\"",
+        "detail": "central_server.central_server",
+        "documentation": {}
+    },
+    {
+        "label": "serve_static",
+        "kind": 2,
+        "importPath": "central_server.central_server",
+        "description": "central_server.central_server",
+        "peekOfCode": "def serve_static(filename):\n    \"\"\"Serve static files\"\"\"\n    return send_from_directory('static', filename)\n@app.route('/api/update', methods=['POST'])\ndef update_data():\n    \"\"\"Endpoint for agents to send their data\"\"\"\n    try:\n        data = request.json\n        agent_id = data.get('agent_id')\n        if not agent_id:",
+        "detail": "central_server.central_server",
+        "documentation": {}
+    },
+    {
+        "label": "update_data",
+        "kind": 2,
+        "importPath": "central_server.central_server",
+        "description": "central_server.central_server",
+        "peekOfCode": "def update_data():\n    \"\"\"Endpoint for agents to send their data\"\"\"\n    try:\n        data = request.json\n        agent_id = data.get('agent_id')\n        if not agent_id:\n            return jsonify({'status': 'error', 'message': 'Missing agent_id'}), 400\n        # Store the update time\n        last_update[agent_id] = time.time()\n        # Initialize agent data if it doesn't exist",
+        "detail": "central_server.central_server",
+        "documentation": {}
+    },
+    {
+        "label": "get_status",
+        "kind": 2,
+        "importPath": "central_server.central_server",
+        "description": "central_server.central_server",
+        "peekOfCode": "def get_status():\n    \"\"\"Endpoint to check the status of all agents\"\"\"\n    current_time = time.time()\n    status = {\n        'agents': {},\n        'total_agents': len(agent_data),\n        'online_agents': 0\n    }\n    for agent_id in agent_data:\n        is_online = agent_id in last_update and (current_time - last_update[agent_id] <= TIMEOUT_THRESHOLD)",
+        "detail": "central_server.central_server",
+        "documentation": {}
+    },
+    {
+        "label": "get_data",
+        "kind": 2,
+        "importPath": "central_server.central_server",
+        "description": "central_server.central_server",
+        "peekOfCode": "def get_data():\n    \"\"\"Endpoint to retrieve all collected data\"\"\"\n    return jsonify(agent_data)\n@app.route('/api/latest_charts', methods=['GET'])\ndef get_latest_charts():\n    \"\"\"Get information about the latest generated charts\"\"\"\n    charts = {\n        'rewards_chart': '/static/rewards_comparison.png?t=' + str(int(time.time())),\n        'queue_chart': '/static/queue_comparison.png?t=' + str(int(time.time())),\n        'timestamp': datetime.now().strftime(\"%Y-%m-%d %H:%M:%S\")",
+        "detail": "central_server.central_server",
+        "documentation": {}
+    },
+    {
+        "label": "get_latest_charts",
+        "kind": 2,
+        "importPath": "central_server.central_server",
+        "description": "central_server.central_server",
+        "peekOfCode": "def get_latest_charts():\n    \"\"\"Get information about the latest generated charts\"\"\"\n    charts = {\n        'rewards_chart': '/static/rewards_comparison.png?t=' + str(int(time.time())),\n        'queue_chart': '/static/queue_comparison.png?t=' + str(int(time.time())),\n        'timestamp': datetime.now().strftime(\"%Y-%m-%d %H:%M:%S\")\n    }\n    return jsonify(charts)\nif __name__ == '__main__':\n    # Create template files if they don't exist",
+        "detail": "central_server.central_server",
+        "documentation": {}
+    },
+    {
+        "label": "app",
+        "kind": 5,
+        "importPath": "central_server.central_server",
+        "description": "central_server.central_server",
+        "peekOfCode": "app = Flask(__name__)\nCORS(app)  # Thêm dòng này để cho phép truy cập từ Flutter Web\n# Data storage\nagent_data = {}\nlast_update = {}\nTIMEOUT_THRESHOLD = 60  # seconds until agent considered offline\n# Create directories for data storage\nos.makedirs('server_data', exist_ok=True)\nos.makedirs('server_data/figures', exist_ok=True)\nos.makedirs('static', exist_ok=True)",
+        "detail": "central_server.central_server",
+        "documentation": {}
+    },
+    {
+        "label": "agent_data",
+        "kind": 5,
+        "importPath": "central_server.central_server",
+        "description": "central_server.central_server",
+        "peekOfCode": "agent_data = {}\nlast_update = {}\nTIMEOUT_THRESHOLD = 60  # seconds until agent considered offline\n# Create directories for data storage\nos.makedirs('server_data', exist_ok=True)\nos.makedirs('server_data/figures', exist_ok=True)\nos.makedirs('static', exist_ok=True)\nos.makedirs('templates', exist_ok=True)\ndef save_data_periodically():\n    \"\"\"Save collected data to disk periodically\"\"\"",
+        "detail": "central_server.central_server",
+        "documentation": {}
+    },
+    {
+        "label": "last_update",
+        "kind": 5,
+        "importPath": "central_server.central_server",
+        "description": "central_server.central_server",
+        "peekOfCode": "last_update = {}\nTIMEOUT_THRESHOLD = 60  # seconds until agent considered offline\n# Create directories for data storage\nos.makedirs('server_data', exist_ok=True)\nos.makedirs('server_data/figures', exist_ok=True)\nos.makedirs('static', exist_ok=True)\nos.makedirs('templates', exist_ok=True)\ndef save_data_periodically():\n    \"\"\"Save collected data to disk periodically\"\"\"\n    while True:",
+        "detail": "central_server.central_server",
+        "documentation": {}
+    },
+    {
+        "label": "TIMEOUT_THRESHOLD",
+        "kind": 5,
+        "importPath": "central_server.central_server",
+        "description": "central_server.central_server",
+        "peekOfCode": "TIMEOUT_THRESHOLD = 60  # seconds until agent considered offline\n# Create directories for data storage\nos.makedirs('server_data', exist_ok=True)\nos.makedirs('server_data/figures', exist_ok=True)\nos.makedirs('static', exist_ok=True)\nos.makedirs('templates', exist_ok=True)\ndef save_data_periodically():\n    \"\"\"Save collected data to disk periodically\"\"\"\n    while True:\n        # Save current data",
+        "detail": "central_server.central_server",
+        "documentation": {}
+    }
+]
