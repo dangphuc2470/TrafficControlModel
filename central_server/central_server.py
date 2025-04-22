@@ -11,6 +11,7 @@ import folium
 from folium.plugins import MarkerCluster
 import math
 import xml.etree.ElementTree as ET
+from collections import deque
 
 app = Flask(__name__)
 CORS(app)  # Cho phép truy cập từ Flutter Web
@@ -20,11 +21,21 @@ agent_data = {}
 last_update = {}
 TIMEOUT_THRESHOLD = 60  # seconds until agent considered offline
 
+# Store recent server logs
+server_logs = deque(maxlen=100)  # Keep the last 100 logs
+
 # Create directories for data storage
 os.makedirs('server_data', exist_ok=True)
 os.makedirs('server_data/figures', exist_ok=True)
 os.makedirs('static', exist_ok=True)
 os.makedirs('templates', exist_ok=True)
+
+def log_event(message):
+    """Add a message to the server logs with timestamp"""
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    log_entry = f"[{timestamp}] {message}"
+    server_logs.append(log_entry)
+    print(log_entry)
 
 def generate_intersection_map():
     """Generate a map showing all connected intersections with their network structure"""
@@ -202,16 +213,16 @@ def save_data_periodically():
         current_time = time.time()
         for agent_id, last_time in list(last_update.items()):
             if current_time - last_time > TIMEOUT_THRESHOLD:
-                print(f"Agent {agent_id} appears to be offline")
+                log_event(f"WARNING: Agent {agent_id} appears to be offline")
         
         # Generate visualizations if data exists
         if agent_data:
             try:
                 generate_comparison_charts()
-                # Generate the intersection map
                 generate_intersection_map()
+                log_event("Generated updated charts and map")
             except Exception as e:
-                print(f"Error generating visualizations: {e}")
+                log_event(f"ERROR generating visualizations: {e}")
                 
         time.sleep(30)  # Update every 30 seconds
 
@@ -272,6 +283,7 @@ def update_data():
         agent_id = data.get('agent_id')
         
         if not agent_id:
+            log_event("ERROR: Received update without agent_id")
             return jsonify({'status': 'error', 'message': 'Missing agent_id'}), 400
         
         # Store the update time
@@ -280,27 +292,38 @@ def update_data():
         # Initialize agent data if it doesn't exist
         if (agent_id not in agent_data):
             agent_data[agent_id] = {}
+            log_event(f"New agent registered: {agent_id}")
         
         # Special handling for topology data - only update it once
         if 'topology' in data and 'topology' not in agent_data[agent_id]:
-            print(f"Received topology data from Agent {agent_id}")
+            log_event(f"Received topology data from Agent {agent_id}")
             # Parse and store the topology data
             agent_data[agent_id]['topology'] = data['topology']
             # Generate an updated map now
             try:
                 generate_intersection_map()
             except Exception as e:
-                print(f"Error generating map after topology update: {e}")
+                log_event(f"Error generating map after topology update: {e}")
+        
+        # Log main data points
+        log_message = f"Update from {agent_id}"
+        if 'last_episode' in data:
+            log_message += f", Episode: {data['last_episode']}"
+        if 'status' in data:
+            log_message += f", Status: {data['status']}"
+        if 'rewards' in data and data['rewards']:
+            log_message += f", Reward: {data['rewards'][-1]:.2f}" if data['rewards'] else ""
+        log_event(log_message)
         
         # Update other agent data
         for key, value in data.items():
             if key != 'agent_id' and key != 'topology':
                 agent_data[agent_id][key] = value
         
-        print(f"Received update from Agent {agent_id}")
         return jsonify({'status': 'success'}), 200
     
     except Exception as e:
+        log_event(f"ERROR in update_data: {str(e)}")
         return jsonify({'status': 'error', 'message': str(e)}), 500
 
 @app.route('/api/status', methods=['GET'])
@@ -356,6 +379,11 @@ def reset_server_data():
 def show_map():
     """Serve the intersection map page"""
     return render_template('map.html')
+
+@app.route('/api/logs', methods=['GET'])
+def get_logs():
+    """Endpoint to retrieve server logs"""
+    return jsonify({'logs': list(server_logs)})
 
 if __name__ == '__main__':
     # Create template files if they don't exist
@@ -426,6 +454,20 @@ if __name__ == '__main__':
                     </div>
                     <div class="chart-info">
                         <span>Last updated: <span id="chart-update-time">-</span></span>
+                    </div>
+                </div>
+                    <div class="log-container">
+                <h2>Server Log</h2>
+                    <div class="log-controls">
+                        <button id="refresh-logs" class="log-button">Refresh</button>
+                        <button id="clear-logs" class="log-button">Clear Display</button>
+                        <div class="auto-refresh">
+                            <input type="checkbox" id="auto-refresh" checked>
+                            <label for="auto-refresh">Auto-refresh</label>
+                        </div>
+                    </div>
+                    <div class="log-box" id="log-box">
+                        <div class="log-entry">Waiting for server logs...</div>
                     </div>
                 </div>
                 
@@ -754,6 +796,83 @@ footer {
 .nav-link.active {
     background: #007bff;
     color: white;
+}
+                    
+                    /* Log Box Styles */
+.log-container {
+    background: #fff;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    margin-bottom: 20px;
+}
+
+.log-controls {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    margin-bottom: 10px;
+    gap: 10px;
+}
+
+.log-button {
+    padding: 6px 12px;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.log-button:hover {
+    background: #e9ecef;
+}
+
+.auto-refresh {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+    font-size: 0.9rem;
+}
+
+.auto-refresh input {
+    margin-right: 5px;
+}
+
+.log-box {
+    height: 250px;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    padding: 10px;
+    overflow-y: auto;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 0.85rem;
+    line-height: 1.4;
+}
+
+.log-entry {
+    margin-bottom: 5px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #eee;
+    word-break: break-word;
+}
+
+.log-entry:last-child {
+    margin-bottom: 0;
+    border-bottom: none;
+}
+
+.log-entry.error {
+    color: #dc3545;
+}
+
+.log-entry.warning {
+    color: #ffc107;
+}
+
+.log-entry.success {
+    color: #28a745;
 }
 
 /* Responsive styles */

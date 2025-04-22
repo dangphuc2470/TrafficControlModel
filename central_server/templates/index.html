@@ -10,6 +10,10 @@
 <body>
     <div class="container">
         <header>
+            <nav class="main-nav">
+                <a href="/" class="nav-link active">Dashboard</a>
+                <a href="/map" class="nav-link">Network Map</a>
+            </nav>
             <h1>Traffic Light Control System - Central Server</h1>
             <div class="server-status">
                 <span class="status-label">Server Status:</span>
@@ -59,6 +63,20 @@
                     </div>
                     <div class="chart-info">
                         <span>Last updated: <span id="chart-update-time">-</span></span>
+                    </div>
+                </div>
+                    <div class="log-container">
+                <h2>Server Log</h2>
+                    <div class="log-controls">
+                        <button id="refresh-logs" class="log-button">Refresh</button>
+                        <button id="clear-logs" class="log-button">Clear Display</button>
+                        <div class="auto-refresh">
+                            <input type="checkbox" id="auto-refresh" checked>
+                            <label for="auto-refresh">Auto-refresh</label>
+                        </div>
+                    </div>
+                    <div class="log-box" id="log-box">
+                        <div class="log-entry">Waiting for server logs...</div>
                     </div>
                 </div>
                 

@@ -2,6 +2,8 @@
 let agentData = {};
 let selectedAgent = null;
 let refreshInterval = 5000; // 5 seconds
+let logAutoRefresh = true;
+let lastLogTimestamp = 0;
 
 // Initialize when page loads
 document.addEventListener('DOMContentLoaded', function() {
@@ -18,6 +20,23 @@ document.addEventListener('DOMContentLoaded', function() {
         selectedAgent = e.target.value;
         updateAgentDetails();
     });
+    
+    // Set up log controls
+    document.getElementById('refresh-logs').addEventListener('click', fetchLogs);
+    document.getElementById('clear-logs').addEventListener('click', clearLogs);
+    document.getElementById('auto-refresh').addEventListener('change', function(e) {
+        logAutoRefresh = e.target.checked;
+    });
+    
+    // Initial log fetch
+    fetchLogs();
+    
+    // Add periodic log refresh if auto-refresh is enabled
+    setInterval(function() {
+        if (logAutoRefresh) {
+            fetchLogs();
+        }
+    }, refreshInterval);
 });
 
 // Fetch the status of all agents
@@ -59,6 +78,18 @@ function fetchLatestCharts() {
         })
         .catch(error => {
             console.error('Error fetching latest charts:', error);
+        });
+}
+
+// Fetch server logs
+function fetchLogs() {
+    fetch('/api/logs')
+        .then(response => response.json())
+        .then(data => {
+            updateLogBox(data.logs);
+        })
+        .catch(error => {
+            console.error('Error fetching logs:', error);
         });
 }
 
@@ -218,4 +249,47 @@ function getStatusBadge(status) {
     }
     
     return `<span class="status-badge ${badgeClass}">${status}</span>`;
+}
+
+// Update the log box with new logs
+function updateLogBox(logs) {
+    const logBox = document.getElementById('log-box');
+    
+    if (!logs || logs.length === 0) {
+        logBox.innerHTML = '<div class="log-entry">No logs available</div>';
+        return;
+    }
+    
+    // Clear existing logs if requested
+    if (logBox.getAttribute('data-cleared') === 'true') {
+        logBox.innerHTML = '';
+        logBox.removeAttribute('data-cleared');
+    }
+    
+    let logHTML = '';
+    logs.forEach(log => {
+        // Determine log type based on content
+        let logClass = '';
+        if (log.includes('ERROR')) {
+            logClass = 'error';
+        } else if (log.includes('WARNING')) {
+            logClass = 'warning';
+        } else if (log.includes('registered') || log.includes('success')) {
+            logClass = 'success';
+        }
+        
+        logHTML += `<div class="log-entry ${logClass}">${log}</div>`;
+    });
+    
+    logBox.innerHTML = logHTML;
+    
+    // Scroll to bottom
+    logBox.scrollTop = logBox.scrollHeight;
+}
+
+// Clear the log display
+function clearLogs() {
+    const logBox = document.getElementById('log-box');
+    logBox.innerHTML = '<div class="log-entry">Logs cleared. Waiting for new logs...</div>';
+    logBox.setAttribute('data-cleared', 'true');
 }

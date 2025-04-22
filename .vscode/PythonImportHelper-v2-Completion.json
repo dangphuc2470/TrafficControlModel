@@ -610,6 +610,14 @@
         "documentation": {}
     },
     {
+        "label": "deque",
+        "importPath": "collections",
+        "description": "collections",
+        "isExtraImport": true,
+        "detail": "collections",
+        "documentation": {}
+    },
+    {
         "label": "gui_shapes",
         "kind": 5,
         "importPath": "agent_new.intersection.pythonas",
@@ -961,6 +969,15 @@
         "documentation": {}
     },
     {
+        "label": "log_event",
+        "kind": 2,
+        "importPath": "central_server.central_server",
+        "description": "central_server.central_server",
+        "peekOfCode": "def log_event(message):\n    \"\"\"Add a message to the server logs with timestamp\"\"\"\n    timestamp = datetime.now().strftime(\"%Y-%m-%d %H:%M:%S\")\n    log_entry = f\"[{timestamp}] {message}\"\n    server_logs.append(log_entry)\n    print(log_entry)\ndef generate_intersection_map():\n    \"\"\"Generate a map showing all connected intersections with their network structure\"\"\"\n    # Default center coordinates\n    default_center = [10.777807, 106.681676]",
+        "detail": "central_server.central_server",
+        "documentation": {}
+    },
+    {
         "label": "generate_intersection_map",
         "kind": 2,
         "importPath": "central_server.central_server",
@@ -1019,7 +1036,7 @@
         "kind": 2,
         "importPath": "central_server.central_server",
         "description": "central_server.central_server",
-        "peekOfCode": "def update_data():\n    \"\"\"Endpoint for agents to send their data\"\"\"\n    try:\n        data = request.json\n        agent_id = data.get('agent_id')\n        if not agent_id:\n            return jsonify({'status': 'error', 'message': 'Missing agent_id'}), 400\n        # Store the update time\n        last_update[agent_id] = time.time()\n        # Initialize agent data if it doesn't exist",
+        "peekOfCode": "def update_data():\n    \"\"\"Endpoint for agents to send their data\"\"\"\n    try:\n        data = request.json\n        agent_id = data.get('agent_id')\n        if not agent_id:\n            log_event(\"ERROR: Received update without agent_id\")\n            return jsonify({'status': 'error', 'message': 'Missing agent_id'}), 400\n        # Store the update time\n        last_update[agent_id] = time.time()",
         "detail": "central_server.central_server",
         "documentation": {}
     },
@@ -1064,7 +1081,16 @@
         "kind": 2,
         "importPath": "central_server.central_server",
         "description": "central_server.central_server",
-        "peekOfCode": "def show_map():\n    \"\"\"Serve the intersection map page\"\"\"\n    return render_template('map.html')\nif __name__ == '__main__':\n    # Create template files if they don't exist\n    if not os.path.exists('templates/index.html'):\n        with open('templates/index.html', 'w') as f:\n            f.write('''<!DOCTYPE html>\n<html>\n<head>",
+        "peekOfCode": "def show_map():\n    \"\"\"Serve the intersection map page\"\"\"\n    return render_template('map.html')\n@app.route('/api/logs', methods=['GET'])\ndef get_logs():\n    \"\"\"Endpoint to retrieve server logs\"\"\"\n    return jsonify({'logs': list(server_logs)})\nif __name__ == '__main__':\n    # Create template files if they don't exist\n    if not os.path.exists('templates/index.html'):",
+        "detail": "central_server.central_server",
+        "documentation": {}
+    },
+    {
+        "label": "get_logs",
+        "kind": 2,
+        "importPath": "central_server.central_server",
+        "description": "central_server.central_server",
+        "peekOfCode": "def get_logs():\n    \"\"\"Endpoint to retrieve server logs\"\"\"\n    return jsonify({'logs': list(server_logs)})\nif __name__ == '__main__':\n    # Create template files if they don't exist\n    if not os.path.exists('templates/index.html'):\n        with open('templates/index.html', 'w') as f:\n            f.write('''<!DOCTYPE html>\n<html>\n<head>",
         "detail": "central_server.central_server",
         "documentation": {}
     },
@@ -1073,7 +1099,7 @@
         "kind": 5,
         "importPath": "central_server.central_server",
         "description": "central_server.central_server",
-        "peekOfCode": "app = Flask(__name__)\nCORS(app)  # Cho phép truy cập từ Flutter Web\n# Data storage\nagent_data = {}\nlast_update = {}\nTIMEOUT_THRESHOLD = 60  # seconds until agent considered offline\n# Create directories for data storage\nos.makedirs('server_data', exist_ok=True)\nos.makedirs('server_data/figures', exist_ok=True)\nos.makedirs('static', exist_ok=True)",
+        "peekOfCode": "app = Flask(__name__)\nCORS(app)  # Cho phép truy cập từ Flutter Web\n# Data storage\nagent_data = {}\nlast_update = {}\nTIMEOUT_THRESHOLD = 60  # seconds until agent considered offline\n# Store recent server logs\nserver_logs = deque(maxlen=100)  # Keep the last 100 logs\n# Create directories for data storage\nos.makedirs('server_data', exist_ok=True)",
         "detail": "central_server.central_server",
         "documentation": {}
     },
@@ -1082,7 +1108,7 @@
         "kind": 5,
         "importPath": "central_server.central_server",
         "description": "central_server.central_server",
-        "peekOfCode": "agent_data = {}\nlast_update = {}\nTIMEOUT_THRESHOLD = 60  # seconds until agent considered offline\n# Create directories for data storage\nos.makedirs('server_data', exist_ok=True)\nos.makedirs('server_data/figures', exist_ok=True)\nos.makedirs('static', exist_ok=True)\nos.makedirs('templates', exist_ok=True)\ndef generate_intersection_map():\n    \"\"\"Generate a map showing all connected intersections with their network structure\"\"\"",
+        "peekOfCode": "agent_data = {}\nlast_update = {}\nTIMEOUT_THRESHOLD = 60  # seconds until agent considered offline\n# Store recent server logs\nserver_logs = deque(maxlen=100)  # Keep the last 100 logs\n# Create directories for data storage\nos.makedirs('server_data', exist_ok=True)\nos.makedirs('server_data/figures', exist_ok=True)\nos.makedirs('static', exist_ok=True)\nos.makedirs('templates', exist_ok=True)",
         "detail": "central_server.central_server",
         "documentation": {}
     },
@@ -1091,7 +1117,7 @@
         "kind": 5,
         "importPath": "central_server.central_server",
         "description": "central_server.central_server",
-        "peekOfCode": "last_update = {}\nTIMEOUT_THRESHOLD = 60  # seconds until agent considered offline\n# Create directories for data storage\nos.makedirs('server_data', exist_ok=True)\nos.makedirs('server_data/figures', exist_ok=True)\nos.makedirs('static', exist_ok=True)\nos.makedirs('templates', exist_ok=True)\ndef generate_intersection_map():\n    \"\"\"Generate a map showing all connected intersections with their network structure\"\"\"\n    # Default center coordinates",
+        "peekOfCode": "last_update = {}\nTIMEOUT_THRESHOLD = 60  # seconds until agent considered offline\n# Store recent server logs\nserver_logs = deque(maxlen=100)  # Keep the last 100 logs\n# Create directories for data storage\nos.makedirs('server_data', exist_ok=True)\nos.makedirs('server_data/figures', exist_ok=True)\nos.makedirs('static', exist_ok=True)\nos.makedirs('templates', exist_ok=True)\ndef log_event(message):",
         "detail": "central_server.central_server",
         "documentation": {}
     },
@@ -1100,7 +1126,16 @@
         "kind": 5,
         "importPath": "central_server.central_server",
         "description": "central_server.central_server",
-        "peekOfCode": "TIMEOUT_THRESHOLD = 60  # seconds until agent considered offline\n# Create directories for data storage\nos.makedirs('server_data', exist_ok=True)\nos.makedirs('server_data/figures', exist_ok=True)\nos.makedirs('static', exist_ok=True)\nos.makedirs('templates', exist_ok=True)\ndef generate_intersection_map():\n    \"\"\"Generate a map showing all connected intersections with their network structure\"\"\"\n    # Default center coordinates\n    default_center = [10.777807, 106.681676]",
+        "peekOfCode": "TIMEOUT_THRESHOLD = 60  # seconds until agent considered offline\n# Store recent server logs\nserver_logs = deque(maxlen=100)  # Keep the last 100 logs\n# Create directories for data storage\nos.makedirs('server_data', exist_ok=True)\nos.makedirs('server_data/figures', exist_ok=True)\nos.makedirs('static', exist_ok=True)\nos.makedirs('templates', exist_ok=True)\ndef log_event(message):\n    \"\"\"Add a message to the server logs with timestamp\"\"\"",
+        "detail": "central_server.central_server",
+        "documentation": {}
+    },
+    {
+        "label": "server_logs",
+        "kind": 5,
+        "importPath": "central_server.central_server",
+        "description": "central_server.central_server",
+        "peekOfCode": "server_logs = deque(maxlen=100)  # Keep the last 100 logs\n# Create directories for data storage\nos.makedirs('server_data', exist_ok=True)\nos.makedirs('server_data/figures', exist_ok=True)\nos.makedirs('static', exist_ok=True)\nos.makedirs('templates', exist_ok=True)\ndef log_event(message):\n    \"\"\"Add a message to the server logs with timestamp\"\"\"\n    timestamp = datetime.now().strftime(\"%Y-%m-%d %H:%M:%S\")\n    log_entry = f\"[{timestamp}] {message}\"",
         "detail": "central_server.central_server",
         "documentation": {}
     }
