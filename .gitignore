@@ -1,5 +1,4 @@
-# Ignore README.md file
-README.md
+command.sh
 
 # Common files to ignore
 .DS_Store
