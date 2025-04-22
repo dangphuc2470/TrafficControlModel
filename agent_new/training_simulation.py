@@ -17,7 +17,7 @@ PHASE_EWL_YELLOW = 7
 
 
 class Simulation:
-    def __init__(self, Model, Memory, TrafficGen, sumo_cmd, gamma, max_steps, green_duration, yellow_duration, num_states, num_actions, training_epochs, server_url=None, agent_id=None):
+    def __init__(self, Model, Memory, TrafficGen, sumo_cmd, gamma, max_steps, green_duration, yellow_duration, num_states, num_actions, training_epochs, server_url=None, agent_id=None, mapping_config=None, env_file_path=None):
         self._Model = Model
         self._Memory = Memory
         self._TrafficGen = TrafficGen
@@ -37,7 +37,7 @@ class Simulation:
         # Initialize server communication if URL is provided
         self.server_url = server_url
         if server_url:
-            self.communicator = AgentCommunicatorTraining(server_url, agent_id)
+            self.communicator = AgentCommunicatorTraining(server_url, agent_id, mapping_config, env_file_path)
             self.communicator.update_status("initialized")
             self.communicator.update_config({
                 "max_steps": max_steps,

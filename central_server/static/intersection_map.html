@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html>
+<head>
+    
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+    
+        <script>
+            L_NO_TOUCH = false;
+            L_DISABLE_3D = false;
+        </script>
+    
+    <style>html, body {width: 100%;height: 100%;margin: 0;padding: 0;}</style>
+    <style>#map {position:absolute;top:0;bottom:0;right:0;left:0;}</style>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.2.0/css/all.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/python-visualization/folium/folium/templates/leaflet.awesome.rotate.min.css"/>
+    
+            <meta name="viewport" content="width=device-width,
+                initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+            <style>
+                #map_622bdb5778a86f7485c979b2340ae86e {
+                    position: relative;
+                    width: 100.0%;
+                    height: 100.0%;
+                    left: 0.0%;
+                    top: 0.0%;
+                }
+                .leaflet-container { font-size: 1rem; }
+            </style>
+        
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.1.0/leaflet.markercluster.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.1.0/MarkerCluster.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.1.0/MarkerCluster.Default.css"/>
+</head>
+<body>
+    
+    
+            <div class="folium-map" id="map_622bdb5778a86f7485c979b2340ae86e" ></div>
+        
+</body>
+<script>
+    
+    
+            var map_622bdb5778a86f7485c979b2340ae86e = L.map(
+                "map_622bdb5778a86f7485c979b2340ae86e",
+                {
+                    center: [10.777807, 106.681676],
+                    crs: L.CRS.EPSG3857,
+                    zoom: 15,
+                    zoomControl: true,
+                    preferCanvas: false,
+                }
+            );
+
+            
+
+        
+    
+            var tile_layer_eae1bd0ac10a0dde42965cb7a6edbcac = L.tileLayer(
+                "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                {"attribution": "\u0026copy; \u003ca href=\"https://www.openstreetmap.org/copyright\"\u003eOpenStreetMap\u003c/a\u003e contributors", "detectRetina": false, "maxNativeZoom": 19, "maxZoom": 19, "minZoom": 0, "noWrap": false, "opacity": 1, "subdomains": "abc", "tms": false}
+            );
+        
+    
+            tile_layer_eae1bd0ac10a0dde42965cb7a6edbcac.addTo(map_622bdb5778a86f7485c979b2340ae86e);
+        
+    
+            var marker_cluster_4c2b1bed83091f1babc85a81d946c7b2 = L.markerClusterGroup(
+                {}
+            );
+        
+    
+            var marker_e50f8f92262dd548e6852049b28d636a = L.marker(
+                [10.78675, 106.701765],
+                {}
+            ).addTo(marker_cluster_4c2b1bed83091f1babc85a81d946c7b2);
+        
+    
+            var icon_4850a8e17a76c9b06b5a8b3f85ca1d57 = L.AwesomeMarkers.icon(
+                {"extraClasses": "fa-rotate-0", "icon": "traffic-light", "iconColor": "white", "markerColor": "red", "prefix": "fa"}
+            );
+            marker_e50f8f92262dd548e6852049b28d636a.setIcon(icon_4850a8e17a76c9b06b5a8b3f85ca1d57);
+        
+    
+        var popup_09a01a9f0f414e288af4a881c0e5b49c = L.popup({"maxWidth": 250});
+
+        
+            
+                var html_6254ba83f9bfd797dce5f1305d5338d1 = $(`<div id="html_6254ba83f9bfd797dce5f1305d5338d1" style="width: 100.0%; height: 100.0%;">                     <div style="width: 200px;">                         <h3>Nguyen Thi Minh Khai - Dinh Tien Hoang</h3>                         <b>Agent ID:</b> agent4<br>                         <b>Status:</b> Offline<br>Average queue: 12.09 vehicles<br>                         <b>Location:</b> 10.786750, 106.701765                     </div>                     </div>`)[0];
+                popup_09a01a9f0f414e288af4a881c0e5b49c.setContent(html_6254ba83f9bfd797dce5f1305d5338d1);
+            
+        
+
+        marker_e50f8f92262dd548e6852049b28d636a.bindPopup(popup_09a01a9f0f414e288af4a881c0e5b49c)
+        ;
+
+        
+    
+    
+            marker_e50f8f92262dd548e6852049b28d636a.bindTooltip(
+                `<div>
+                     Nguyen Thi Minh Khai - Dinh Tien Hoang
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var marker_6faff5ceab334f0cf274c64f66196afb = L.marker(
+                [10.782851, 106.698079],
+                {}
+            ).addTo(marker_cluster_4c2b1bed83091f1babc85a81d946c7b2);
+        
+    
+            var icon_ddafe76148bebe584cc845db8e36a6bf = L.AwesomeMarkers.icon(
+                {"extraClasses": "fa-rotate-0", "icon": "traffic-light", "iconColor": "white", "markerColor": "red", "prefix": "fa"}
+            );
+            marker_6faff5ceab334f0cf274c64f66196afb.setIcon(icon_ddafe76148bebe584cc845db8e36a6bf);
+        
+    
+        var popup_150fb3b8de759346151d6ec89a6e8ec2 = L.popup({"maxWidth": 250});
+
+        
+            
+                var html_cde0ee700c7e530f31ff3dbc2c69eb66 = $(`<div id="html_cde0ee700c7e530f31ff3dbc2c69eb66" style="width: 100.0%; height: 100.0%;">                     <div style="width: 200px;">                         <h3>Hai Ba Trung - Nguyen Thi Minh Khai</h3>                         <b>Agent ID:</b> agent3<br>                         <b>Status:</b> Offline<br>Average queue: 8.48 vehicles<br>                         <b>Location:</b> 10.782851, 106.698079                     </div>                     </div>`)[0];
+                popup_150fb3b8de759346151d6ec89a6e8ec2.setContent(html_cde0ee700c7e530f31ff3dbc2c69eb66);
+            
+        
+
+        marker_6faff5ceab334f0cf274c64f66196afb.bindPopup(popup_150fb3b8de759346151d6ec89a6e8ec2)
+        ;
+
+        
+    
+    
+            marker_6faff5ceab334f0cf274c64f66196afb.bindTooltip(
+                `<div>
+                     Hai Ba Trung - Nguyen Thi Minh Khai
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var marker_207fdfd52827c4b421fffeccde070b76 = L.marker(
+                [10.786519, 106.69368],
+                {}
+            ).addTo(marker_cluster_4c2b1bed83091f1babc85a81d946c7b2);
+        
+    
+            var icon_0f68f532c1dc8c87ee9d52866395a3f3 = L.AwesomeMarkers.icon(
+                {"extraClasses": "fa-rotate-0", "icon": "traffic-light", "iconColor": "white", "markerColor": "red", "prefix": "fa"}
+            );
+            marker_207fdfd52827c4b421fffeccde070b76.setIcon(icon_0f68f532c1dc8c87ee9d52866395a3f3);
+        
+    
+        var popup_789671959d29def62d3e979a801b88e4 = L.popup({"maxWidth": 250});
+
+        
+            
+                var html_540a390869d93849836e521146e1cd40 = $(`<div id="html_540a390869d93849836e521146e1cd40" style="width: 100.0%; height: 100.0%;">                     <div style="width: 200px;">                         <h3>Dien Bien Phu - Hai Ba Trung</h3>                         <b>Agent ID:</b> agent1<br>                         <b>Status:</b> Offline<br>Average queue: 12.32 vehicles<br>                         <b>Location:</b> 10.786519, 106.693680                     </div>                     </div>`)[0];
+                popup_789671959d29def62d3e979a801b88e4.setContent(html_540a390869d93849836e521146e1cd40);
+            
+        
+
+        marker_207fdfd52827c4b421fffeccde070b76.bindPopup(popup_789671959d29def62d3e979a801b88e4)
+        ;
+
+        
+    
+    
+            marker_207fdfd52827c4b421fffeccde070b76.bindTooltip(
+                `<div>
+                     Dien Bien Phu - Hai Ba Trung
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var marker_cd7c5864d6b317d13f080961af3634b5 = L.marker(
+                [10.790418, 106.697478],
+                {}
+            ).addTo(marker_cluster_4c2b1bed83091f1babc85a81d946c7b2);
+        
+    
+            var icon_f0f6cacb1655146e308ec24a1d7a5f7f = L.AwesomeMarkers.icon(
+                {"extraClasses": "fa-rotate-0", "icon": "traffic-light", "iconColor": "white", "markerColor": "red", "prefix": "fa"}
+            );
+            marker_cd7c5864d6b317d13f080961af3634b5.setIcon(icon_f0f6cacb1655146e308ec24a1d7a5f7f);
+        
+    
+        var popup_b6102c7299af73085a6ea47b92a774d0 = L.popup({"maxWidth": 250});
+
+        
+            
+                var html_f62cc32f40f58ff9a69e58e1ccd8ee29 = $(`<div id="html_f62cc32f40f58ff9a69e58e1ccd8ee29" style="width: 100.0%; height: 100.0%;">                     <div style="width: 200px;">                         <h3>Dien Bien Phu - Dinh Tien Hoang</h3>                         <b>Agent ID:</b> agent2<br>                         <b>Status:</b> Offline<br>Average queue: 9.35 vehicles<br>                         <b>Location:</b> 10.790418, 106.697478                     </div>                     </div>`)[0];
+                popup_b6102c7299af73085a6ea47b92a774d0.setContent(html_f62cc32f40f58ff9a69e58e1ccd8ee29);
+            
+        
+
+        marker_cd7c5864d6b317d13f080961af3634b5.bindPopup(popup_b6102c7299af73085a6ea47b92a774d0)
+        ;
+
+        
+    
+    
+            marker_cd7c5864d6b317d13f080961af3634b5.bindTooltip(
+                `<div>
+                     Dien Bien Phu - Dinh Tien Hoang
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            marker_cluster_4c2b1bed83091f1babc85a81d946c7b2.addTo(map_622bdb5778a86f7485c979b2340ae86e);
+        
+    
+            var poly_line_b579284aa850efafec3bc52048b72373 = L.polyline(
+                [[10.78675, 106.701765], [10.782851, 106.698079]],
+                {"bubblingMouseEvents": true, "color": "blue", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "blue", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.7, "smoothFactor": 1.0, "stroke": true, "weight": 2}
+            ).addTo(map_622bdb5778a86f7485c979b2340ae86e);
+        
+    
+            poly_line_b579284aa850efafec3bc52048b72373.bindTooltip(
+                `<div>
+                     Distance: 0.59 km
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var poly_line_fe082c134239f8af6a19b40fb9082125 = L.polyline(
+                [[10.78675, 106.701765], [10.786519, 106.69368]],
+                {"bubblingMouseEvents": true, "color": "blue", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "blue", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.7, "smoothFactor": 1.0, "stroke": true, "weight": 2}
+            ).addTo(map_622bdb5778a86f7485c979b2340ae86e);
+        
+    
+            poly_line_fe082c134239f8af6a19b40fb9082125.bindTooltip(
+                `<div>
+                     Distance: 0.88 km
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var poly_line_9592d307f72632ad66855c7fc1a40ea1 = L.polyline(
+                [[10.78675, 106.701765], [10.790418, 106.697478]],
+                {"bubblingMouseEvents": true, "color": "blue", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "blue", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.7, "smoothFactor": 1.0, "stroke": true, "weight": 2}
+            ).addTo(map_622bdb5778a86f7485c979b2340ae86e);
+        
+    
+            poly_line_9592d307f72632ad66855c7fc1a40ea1.bindTooltip(
+                `<div>
+                     Distance: 0.62 km
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var poly_line_a7e1dfe8bf1fde83df0d10c8ddcafed2 = L.polyline(
+                [[10.782851, 106.698079], [10.786519, 106.69368]],
+                {"bubblingMouseEvents": true, "color": "blue", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "blue", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.7, "smoothFactor": 1.0, "stroke": true, "weight": 2}
+            ).addTo(map_622bdb5778a86f7485c979b2340ae86e);
+        
+    
+            poly_line_a7e1dfe8bf1fde83df0d10c8ddcafed2.bindTooltip(
+                `<div>
+                     Distance: 0.63 km
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var poly_line_f82f4e54b9336648520912bb75c18c80 = L.polyline(
+                [[10.782851, 106.698079], [10.790418, 106.697478]],
+                {"bubblingMouseEvents": true, "color": "blue", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "blue", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.7, "smoothFactor": 1.0, "stroke": true, "weight": 2}
+            ).addTo(map_622bdb5778a86f7485c979b2340ae86e);
+        
+    
+            poly_line_f82f4e54b9336648520912bb75c18c80.bindTooltip(
+                `<div>
+                     Distance: 0.84 km
+                 </div>`,
+                {"sticky": true}
+            );
+        
+    
+            var poly_line_0879bab3d1e11c0cf99be4e6b3ac302f = L.polyline(
+                [[10.786519, 106.69368], [10.790418, 106.697478]],
+                {"bubblingMouseEvents": true, "color": "blue", "dashArray": null, "dashOffset": null, "fill": false, "fillColor": "blue", "fillOpacity": 0.2, "fillRule": "evenodd", "lineCap": "round", "lineJoin": "round", "noClip": false, "opacity": 0.7, "smoothFactor": 1.0, "stroke": true, "weight": 2}
+            ).addTo(map_622bdb5778a86f7485c979b2340ae86e);
+        
+    
+            poly_line_0879bab3d1e11c0cf99be4e6b3ac302f.bindTooltip(
+                `<div>
+                     Distance: 0.60 km
+                 </div>`,
+                {"sticky": true}
+            );
+        
+</script>
+</html>

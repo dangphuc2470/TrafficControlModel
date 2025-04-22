@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, render_template, send_from_directory
-from flask_cors import CORS  # Thêm dòng này
+from flask_cors import CORS 
 import json
 import os
 import time
@@ -7,9 +7,13 @@ import threading
 import matplotlib.pyplot as plt
 import numpy as np
 from datetime import datetime
+import folium
+from folium.plugins import MarkerCluster
+import math
+import xml.etree.ElementTree as ET
 
 app = Flask(__name__)
-CORS(app)  # Thêm dòng này để cho phép truy cập từ Flutter Web
+CORS(app)  # Cho phép truy cập từ Flutter Web
 
 # Data storage
 agent_data = {}
@@ -21,6 +25,171 @@ os.makedirs('server_data', exist_ok=True)
 os.makedirs('server_data/figures', exist_ok=True)
 os.makedirs('static', exist_ok=True)
 os.makedirs('templates', exist_ok=True)
+
+def generate_intersection_map():
+    """Generate a map showing all connected intersections with their network structure"""
+    # Default center coordinates
+    default_center = [10.777807, 106.681676]
+    
+    # Create a map centered on the specified location
+    m = folium.Map(location=default_center, zoom_start=15)
+    
+    # Create a marker cluster for better visualization
+    marker_cluster = MarkerCluster().add_to(m)
+    
+    # Track intersections with valid location data
+    valid_intersections = {}
+    
+    # Add markers for each agent with location data
+    for agent_id, data in agent_data.items():
+        # Check if location data exists
+        if 'topology' in data and 'location' in data['topology']:
+            location = data['topology']['location']
+            if 'latitude' in location and 'longitude' in location:
+                try:
+                    lat = float(location['latitude'])
+                    lng = float(location['longitude'])
+                    name = location.get('intersection_name', f'Intersection {agent_id}')
+                    
+                    # Determine agent status (online/offline)
+                    is_online = agent_id in last_update and (time.time() - last_update[agent_id] <= TIMEOUT_THRESHOLD)
+                    color = 'green' if is_online else 'red'
+                    
+                    # Get performance data if available
+                    queue_info = ""
+                    if 'queue_lengths' in data and len(data['queue_lengths']) > 0:
+                        avg_queue = sum(data['queue_lengths'][-10:]) / min(10, len(data['queue_lengths']))
+                        queue_info = f"<br>Average queue: {avg_queue:.2f} vehicles"
+                    
+                    # Create popup content with more detailed information
+                    popup_content = f"""
+                    <div style="width: 200px;">
+                        <h3>{name}</h3>
+                        <b>Agent ID:</b> {agent_id}<br>
+                        <b>Status:</b> {'Online' if is_online else 'Offline'}{queue_info}<br>
+                        <b>Location:</b> {lat:.6f}, {lng:.6f}
+                    </div>
+                    """
+                    
+                    # Add marker to the cluster
+                    folium.Marker(
+                        location=[lat, lng],
+                        popup=folium.Popup(popup_content, max_width=250),
+                        tooltip=name,
+                        icon=folium.Icon(color=color, icon='traffic-light', prefix='fa')
+                    ).add_to(marker_cluster)
+                    
+                    # Store the intersection for connection drawing
+                    valid_intersections[agent_id] = {
+                        'lat': lat,
+                        'lng': lng,
+                        'environment': data['topology'].get('environment', {}) if 'topology' in data else {}
+                    }
+                    
+                except (ValueError, TypeError) as e:
+                    print(f"Error processing location for agent {agent_id}: {e}")
+    
+    # Draw connections between intersections if they're close enough
+    connections_drawn = set()
+    for id1, info1 in valid_intersections.items():
+        for id2, info2 in valid_intersections.items():
+            if id1 != id2 and (id1, id2) not in connections_drawn and (id2, id1) not in connections_drawn:
+                # Calculate physical distance between intersections
+                distance_km = haversine_distance(
+                    (info1['lat'], info1['lng']), 
+                    (info2['lat'], info2['lng'])
+                )
+                
+                # If they're close enough (e.g., within 1.5km), draw a connection
+                if distance_km < 1.5:
+                    folium.PolyLine(
+                        locations=[(info1['lat'], info1['lng']), (info2['lat'], info2['lng'])],
+                        color='blue',
+                        weight=2,
+                        opacity=0.7,
+                        tooltip=f"Distance: {distance_km:.2f} km"
+                    ).add_to(m)
+                    connections_drawn.add((id1, id2))
+    
+    # Save to static directory for serving
+    map_path = 'static/intersection_map.html'
+    m.save(map_path)
+    
+    # Also save as template
+    with open('templates/map.html', 'w') as f:
+        f.write('''
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Traffic Control Network - Map View</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .map-container {
+            width: 100%;
+            height: calc(100vh - 200px);
+            min-height: 600px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        .dashboard-link {
+            margin-bottom: 20px;
+            display: inline-block;
+            padding: 8px 16px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            text-decoration: none;
+            color: #333;
+        }
+        .dashboard-link:hover {
+            background: #e9ecef;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Traffic Light Control System - Network Map</h1>
+            <div class="server-status">
+                <span class="status-label">Server Status:</span>
+                <span class="status-value online">Online</span>
+            </div>
+        </header>
+        
+        <a href="/" class="dashboard-link">← Back to Dashboard</a>
+        
+        <div class="map-container">
+            <iframe src="/static/intersection_map.html" width="100%" height="100%" frameborder="0"></iframe>
+        </div>
+        
+        <footer>
+            <p>Traffic Light Control System - Central Server &copy; 2025</p>
+        </footer>
+    </div>
+</body>
+</html>
+        ''')
+    
+    return map_path
+
+def haversine_distance(point1, point2):
+    """Calculate the great-circle distance between two points in kilometers"""
+    lat1, lon1 = point1
+    lat2, lon2 = point2
+    
+    # Convert latitude and longitude to radians
+    lat1, lon1, lat2, lon2 = map(math.radians, [lat1, lon1, lat2, lon2])
+    
+    # Haversine formula
+    dlat = lat2 - lat1
+    dlon = lon2 - lon1
+    a = math.sin(dlat/2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon/2)**2
+    c = 2 * math.asin(math.sqrt(a))
+    r = 6371  # Radius of Earth in kilometers
+    return c * r
 
 def save_data_periodically():
     """Save collected data to disk periodically"""
@@ -39,8 +208,10 @@ def save_data_periodically():
         if agent_data:
             try:
                 generate_comparison_charts()
+                # Generate the intersection map
+                generate_intersection_map()
             except Exception as e:
-                print(f"Error generating charts: {e}")
+                print(f"Error generating visualizations: {e}")
                 
         time.sleep(30)  # Update every 30 seconds
 
@@ -107,12 +278,23 @@ def update_data():
         last_update[agent_id] = time.time()
         
         # Initialize agent data if it doesn't exist
-        if agent_id not in agent_data:
+        if (agent_id not in agent_data):
             agent_data[agent_id] = {}
         
-        # Update agent data
+        # Special handling for topology data - only update it once
+        if 'topology' in data and 'topology' not in agent_data[agent_id]:
+            print(f"Received topology data from Agent {agent_id}")
+            # Parse and store the topology data
+            agent_data[agent_id]['topology'] = data['topology']
+            # Generate an updated map now
+            try:
+                generate_intersection_map()
+            except Exception as e:
+                print(f"Error generating map after topology update: {e}")
+        
+        # Update other agent data
         for key, value in data.items():
-            if key != 'agent_id':
+            if key != 'agent_id' and key != 'topology':
                 agent_data[agent_id][key] = value
         
         print(f"Received update from Agent {agent_id}")
@@ -160,6 +342,21 @@ def get_latest_charts():
     }
     return jsonify(charts)
 
+@app.route('/api/reset', methods=['GET'])
+def reset_server_data():
+    """Clear all stored data and reset the server state"""
+    global agent_data, last_update
+    agent_data = {}
+    last_update = {}
+    
+    print("Server data has been reset")
+    return jsonify({'status': 'success', 'message': 'Server data has been reset'}), 200
+
+@app.route('/map')
+def show_map():
+    """Serve the intersection map page"""
+    return render_template('map.html')
+
 if __name__ == '__main__':
     # Create template files if they don't exist
     if not os.path.exists('templates/index.html'):
@@ -176,6 +373,10 @@ if __name__ == '__main__':
 <body>
     <div class="container">
         <header>
+            <nav class="main-nav">
+                <a href="/" class="nav-link active">Dashboard</a>
+                <a href="/map" class="nav-link">Network Map</a>
+            </nav>
             <h1>Traffic Light Control System - Central Server</h1>
             <div class="server-status">
                 <span class="status-label">Server Status:</span>
@@ -530,6 +731,29 @@ footer {
 .status-badge.terminated {
     background: #f8d7da;
     color: #842029;
+}
+                    
+.main-nav {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.nav-link {
+    padding: 8px 16px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    text-decoration: none;
+    color: #333;
+}
+
+.nav-link:hover {
+    background: #e9ecef;
+}
+
+.nav-link.active {
+    background: #007bff;
+    color: white;
 }
 
 /* Responsive styles */

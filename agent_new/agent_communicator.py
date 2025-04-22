@@ -7,13 +7,15 @@ import os
 import numpy as np
 
 class AgentCommunicatorTraining:
-    def __init__(self, server_url, agent_id=None):
+    def __init__(self, server_url, agent_id=None, mapping_config=None, env_file_path=None):
         """
         Initialize the communicator with the server URL
         
         Args:
             server_url: URL of the central server
             agent_id: Unique ID for this agent (if None, hostname will be used)
+            location_data: Dictionary containing location information (lat, long, intersection name)
+            env_file_path: Path to the environment.net.xml file
         """
         self.server_url = server_url
         self.agent_id = agent_id or socket.gethostname()
@@ -27,6 +29,13 @@ class AgentCommunicatorTraining:
             'config': {},
             'model_info': {}
         }
+        
+        # Store location data separately - will be sent only on first sync
+        self.mapping_config = mapping_config if mapping_config else {}
+        self.env_file_path = env_file_path
+        self.env_info = self._extract_env_info() if env_file_path else None
+        self.topology_sent = False
+        
         self.last_sync = 0
         self.sync_interval = 30  # seconds
         self.background_thread = None
@@ -37,6 +46,12 @@ class AgentCommunicatorTraining:
         os.makedirs(self.backup_dir, exist_ok=True)
         
         print(f"Agent communicator initialized with ID: {self.agent_id}")
+        
+        # Log what will be sent on first sync
+        if self.mapping_config:
+            print(f"Mapping configuration will be sent on first sync")
+        if env_file_path:
+            print(f"Environment topology data will be sent on first sync")
     
     def start_background_sync(self):
         """Start a background thread to periodically sync with the server"""
@@ -109,15 +124,40 @@ class AgentCommunicatorTraining:
     def sync_with_server(self):
         """Send accumulated data to the central server"""
         try:
+            # Create a copy of the data to send
+            send_data = self.data.copy()
+            
+            # Add mapping configuration and environment data only on first sync
+            if not self.topology_sent:
+                topology_data = {}
+                
+                # Add mapping configuration if available
+                if self.mapping_config:
+                    topology_data.update(self.mapping_config)
+                
+                # Add environment data if available
+                if self.env_info:
+                    topology_data['environment'] = self.env_info
+                
+                # Only add topology section if we have data to send
+                if topology_data:
+                    send_data['topology'] = topology_data
+            
             response = requests.post(
                 f"{self.server_url}/api/update", 
-                json=self.data,
+                json=send_data,
                 timeout=10
             )
             
             if response.status_code == 200:
                 print(f"Successfully synced data with server. Episodes: {len(self.data['rewards'])}")
                 self.last_sync = time.time()
+                
+                # Mark topology as sent if it was included
+                if not self.topology_sent and 'topology' in send_data:
+                    self.topology_sent = True
+                    print(f"Topology data sent to server for agent {self.agent_id}")
+                    
                 return True
             else:
                 print(f"Server sync failed with status code: {response.status_code}")
@@ -127,6 +167,90 @@ class AgentCommunicatorTraining:
             print(f"Connection error during sync: {e}")
             return False
         
+
+
+    def _extract_env_info(self):
+        """Extract relevant information from the environment.net.xml file"""
+        if not self.env_file_path or not os.path.exists(self.env_file_path):
+            print(f"Environment file not found: {self.env_file_path}")
+            return None
+            
+        try:
+            import xml.etree.ElementTree as ET
+            
+            # Parse the XML file
+            tree = ET.parse(self.env_file_path)
+            root = tree.getroot()
+            
+            # Extract location information
+            location_elem = root.find('location')
+            net_offset = location_elem.get('netOffset', '0.00,0.00') if location_elem else '0.00,0.00'
+            conv_boundary = location_elem.get('convBoundary', '') if location_elem else ''
+            
+            # Extract junction information for the traffic light
+            junctions = []
+            for junction in root.findall('.//junction'):
+                if junction.get('type') == 'traffic_light':
+                    junctions.append({
+                        'id': junction.get('id'),
+                        'x': float(junction.get('x', 0)),
+                        'y': float(junction.get('y', 0)),
+                        'type': junction.get('type')
+                    })
+            
+            # Extract edge information
+            edges = []
+            for edge in root.findall('.//edge'):
+                if edge.get('function') != 'internal':  # Skip internal edges
+                    edge_data = {
+                        'id': edge.get('id'),
+                        'from': edge.get('from', ''),
+                        'to': edge.get('to', ''),
+                        'lanes': []
+                    }
+                    
+                    # Get lane information
+                    for lane in edge.findall('lane'):
+                        edge_data['lanes'].append({
+                            'id': lane.get('id'),
+                            'index': lane.get('index'),
+                            'speed': lane.get('speed'),
+                            'length': lane.get('length')
+                        })
+                    
+                    edges.append(edge_data)
+            
+            # Extract traffic light phases
+            tl_logic = []
+            for tl in root.findall('.//tlLogic'):
+                tl_data = {
+                    'id': tl.get('id'),
+                    'type': tl.get('type'),
+                    'programID': tl.get('programID'),
+                    'offset': tl.get('offset'),
+                    'phases': []
+                }
+                
+                for phase in tl.findall('phase'):
+                    tl_data['phases'].append({
+                        'duration': phase.get('duration'),
+                        'state': phase.get('state')
+                    })
+                
+                tl_logic.append(tl_data)
+            
+            return {
+                'net_offset': net_offset,
+                'boundary': conv_boundary,
+                'junctions': junctions,
+                'edges': edges,
+                'tl_logic': tl_logic
+            }
+            
+        except Exception as e:
+            print(f"Error extracting environment information: {e}")
+            return None
+            
 
 
 
@@ -225,29 +349,40 @@ class AgentCommunicatorTesting:
     def sync_with_server(self):
         """Send accumulated data to the central server"""
         try:
-            data = {
-                "agent_id": self.agent_id,
-                "status": self.status,
-                "config": self.config,
-                "rewards": self.rewards,
-                "queue_lengths": self.queue_lengths,
-                "waiting_times": self.waiting_times,
-                "intermediate_rewards": self.intermediate_rewards,
-                "intermediate_queues": self.intermediate_queues
-            }
+            # Create a copy of the data to send
+            send_data = self.data.copy()
+            
+            # Add location and environment topology data only on first sync
+            if not self.topology_sent:
+                topology_data = {}
+                
+                # Add location data if available
+                if self.location_data:
+                    topology_data['location'] = self.location_data
+                
+                # Add environment data if available
+                if self.env_info:
+                    topology_data['environment'] = self.env_info
+                
+                # Only send if we have data to send
+                if topology_data:
+                    send_data['topology'] = topology_data
             
             response = requests.post(
                 f"{self.server_url}/api/update", 
-                json=data,
+                json=send_data,
                 timeout=10
             )
             
             if response.status_code == 200:
-                print(f"Successfully synced data with server. Episodes: {len(self.rewards)}")
+                print(f"Successfully synced data with server. Episodes: {len(self.data['rewards'])}")
                 self.last_sync = time.time()
-                # Clear intermediate data after successful sync
-                self.intermediate_rewards = []
-                self.intermediate_queues = []
+                
+                # Mark topology as sent if it was included
+                if not self.topology_sent and ('topology' in send_data):
+                    self.topology_sent = True
+                    print(f"Topology data sent to server for agent {self.agent_id}")
+                    
                 return True
             else:
                 print(f"Server sync failed with status code: {response.status_code}")
