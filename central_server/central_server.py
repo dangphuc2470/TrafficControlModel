@@ -216,6 +216,85 @@ def haversine_distance(point1, point2):
     r = 6371  # Radius of Earth in kilometers
     return c * r
 
+def calculate_intersection_sync_times():
+    """Calculate sync times between connected intersections based on distance and expected travel time."""
+    if not agent_data:
+        log_event("No agent data available for calculating sync times")
+        return {}
+    
+    sync_times = {}
+    intersections_with_locations = {}
+    
+    # First, collect all intersections with valid location data
+    for agent_id, data in agent_data.items():
+        if 'topology' in data and 'location' in data['topology']:
+            location = data['topology']['location']
+            if 'latitude' in location and 'longitude' in location:
+                try:
+                    lat = float(location['latitude'])
+                    lng = float(location['longitude'])
+                    intersections_with_locations[agent_id] = (lat, lng)
+                except (ValueError, TypeError):
+                    log_event(f"Invalid location format for agent {agent_id}")
+    
+    # For each pair of intersections, calculate sync time
+    for id1, loc1 in intersections_with_locations.items():
+        sync_times[id1] = {}
+        for id2, loc2 in intersections_with_locations.items():
+            if id1 != id2:
+                # Calculate distance between intersections
+                distance_km = haversine_distance(loc1, loc2)
+                
+                # Calculate travel time based on average speed (assuming 40 km/h)
+                avg_speed_kmh = 40.0
+                
+                # Get actual speed if available in agent data
+                if id1 in agent_data and 'states' in agent_data[id1]:
+                    states = agent_data[id1]['states']
+                    if states and 'traffic_data' in states[-1] and 'avg_speed' in states[-1]['traffic_data']:
+                        speeds = states[-1]['traffic_data']['avg_speed']
+                        # Convert m/s to km/h and average all directions
+                        if speeds:
+                            avg_speed_kmh = sum(speeds.values()) * 3.6 / len(speeds)
+                
+                # Calculate travel time in seconds
+                travel_time_sec = (distance_km / avg_speed_kmh) * 3600
+                
+                # Calculate optimal offset based on travel time (green wave)
+                # This is a simple calculation - in real systems it would be more complex
+                cycle_time = 0
+                if id1 in agent_data and 'config' in agent_data[id1]:
+                    green_duration = agent_data[id1]['config'].get('green_duration', 0)
+                    yellow_duration = agent_data[id1]['config'].get('yellow_duration', 0)
+                    cycle_time = (green_duration + yellow_duration) * 2  # Simplified cycle time calculation
+                
+                # Default cycle time if not available
+                if cycle_time == 0:
+                    cycle_time = 38  # Typical cycle time as fallback
+                
+                # Calculate optimal offset (modulo the cycle time)
+                optimal_offset = travel_time_sec % cycle_time
+                
+                # Store the sync data
+                sync_times[id1][id2] = {
+                    "distance_km": round(distance_km, 2),
+                    "travel_time_sec": round(travel_time_sec, 2),
+                    "optimal_offset_sec": round(optimal_offset, 2),
+                    "cycle_time_sec": cycle_time
+                }
+    
+    # Save the sync times to a file for reference
+    with open('server_data/sync_times.json', 'w') as f:
+        json.dump(sync_times, f, indent=2)
+    
+    log_event(f"Calculated sync times between {len(intersections_with_locations)} intersections")
+    for id1, targets in sync_times.items():
+        for id2, sync_data in targets.items():
+            log_event(f"  {id1} → {id2}: Distance={sync_data['distance_km']}km, " +
+                     f"Travel Time={sync_data['travel_time_sec']}s, " +
+                     f"Optimal Offset={sync_data['optimal_offset_sec']}s")
+    return sync_times
+
 def save_data_periodically():
     """Save collected data to disk periodically"""
     while True:
@@ -294,7 +373,7 @@ def update_data():
     """Endpoint for agents to send their data"""
     try:
         # Todo: remove this full update log
-        log_event(f"Received full update from agent: {request.json}")
+        # log_event(f"Received full update from agent: {request.json}")
         data = request.json
         agent_id = data.get('agent_id')
         
@@ -311,10 +390,12 @@ def update_data():
             log_event(f"New agent registered: {agent_id}")
         
         # Special handling for topology data - only update it once
+        topology_updated = False
         if 'topology' in data and 'topology' not in agent_data[agent_id]:
             log_event(f"Received topology data from Agent {agent_id}")
             # Parse and store the topology data
             agent_data[agent_id]['topology'] = data['topology']
+            topology_updated = True
             # Generate an updated map now
             try:
                 generate_intersection_map()
@@ -335,6 +416,17 @@ def update_data():
         for key, value in data.items():
             if key != 'agent_id' and key != 'topology':
                 agent_data[agent_id][key] = value
+        
+        # If topology was updated, recalculate intersection sync times
+        if topology_updated:
+            sync_times = calculate_intersection_sync_times()
+            # Print sync times information to console for reference
+            log_event("Updated intersection synchronization times:")
+            for id1, targets in sync_times.items():
+                for id2, sync_data in targets.items():
+                    log_event(f"  {id1} → {id2}: Distance={sync_data['distance_km']}km, " +
+                             f"Travel Time={sync_data['travel_time_sec']}s, " +
+                             f"Optimal Offset={sync_data['optimal_offset_sec']}s")
         
         return jsonify({'status': 'success'}), 200
     
@@ -477,7 +569,7 @@ def store_coordination_data(agent_id, data):
 def retrieve_coordination_data(agent_id):
     """Retrieve coordination data for an agent"""
     # Return hardcoded data if nothing specific is stored
-    if agent_id not in coordination_storage:
+    if (agent_id not in coordination_storage):
         # Hardcoded coordination data with default timing
         return {
             'recommended_phase': 0,  # NS_GREEN phase
