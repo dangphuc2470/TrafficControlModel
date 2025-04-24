@@ -142,12 +142,15 @@ class AgentCommunicatorTraining:
                 # Only add topology section if we have data to send
                 if topology_data:
                     send_data['topology'] = topology_data
-            
+                    
+            # Todo: remove this full update log
+            print("Post data to server:", send_data)
             response = requests.post(
                 f"{self.server_url}/api/update", 
                 json=send_data,
                 timeout=10
             )
+            print(f"Response from server: {response.status_code}, {response.text}")
             
             if response.status_code == 200:
                 print(f"Successfully synced data with server. Episodes: {len(self.data['rewards'])}")
@@ -167,7 +170,52 @@ class AgentCommunicatorTraining:
             print(f"Connection error during sync: {e}")
             return False
         
-
+    def send_state(self, state, step, traffic_data=None):
+        """
+        Send the current state and traffic data to the central server
+        
+        Args:
+            state: The state array representing cell occupancy
+            step: Current simulation step
+            traffic_data: Additional traffic information for coordination
+        """
+        if not 'states' in self.data:
+            self.data['states'] = []
+        
+        state_data = {
+            'step': step,
+            'state': state,
+            'timestamp': time.time(),
+            'traffic_data': traffic_data or {}
+        }
+        
+        self.data['states'].append(state_data)
+        
+        # Limit the number of states we store to prevent memory issues
+        if len(self.data['states']) > 100:  # Keep only the last 100 states
+            self.data['states'] = self.data['states'][-100:]
+        
+    def get_coordination_data(self):
+        """
+        Fetch coordination instructions from the central server
+        
+        Returns:
+            Dictionary containing coordination data if available, otherwise None
+        """
+        try:
+            response = requests.get(
+                f"{self.server_url}/api/coordination/{self.agent_id}",
+                timeout=5
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                return data.get('coordination_data')
+            else:
+                return None
+                
+        except requests.exceptions.RequestException:
+            return None
 
     def _extract_env_info(self):
         """Extract relevant information from the environment.net.xml file"""
@@ -251,6 +299,26 @@ class AgentCommunicatorTraining:
             print(f"Error extracting environment information: {e}")
             return None
             
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

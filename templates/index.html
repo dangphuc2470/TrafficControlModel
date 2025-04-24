@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Traffic Light Control System - Dashboard</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <nav class="main-nav">
+                <a href="/" class="nav-link active">Dashboard</a>
+                <a href="/map" class="nav-link">Network Map</a>
+            </nav>
+            <h1>Traffic Light Control System - Central Server</h1>
+            <div class="server-status">
+                <span class="status-label">Server Status:</span>
+                <span class="status-value online">Online</span>
+                <span class="last-update">Last update: <span id="last-update-time">-</span></span>
+            </div>
+        </header>
+        
+        <div class="dashboard">
+            <div class="sidebar">
+                <div class="agent-summary">
+                    <h2>Agent Summary</h2>
+                    <div class="summary-stats">
+                        <div class="stat-box">
+                            <span class="stat-value" id="total-agents">0</span>
+                            <span class="stat-label">Total Agents</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="stat-value" id="online-agents">0</span>
+                            <span class="stat-label">Online Agents</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="agent-list">
+                    <h2>Agent List</h2>
+                    <div id="agent-list-container">
+                        <p>No agents connected</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="main-content">
+                <div class="chart-container">
+                    <h2>Performance Comparison</h2>
+                    <div class="chart-tabs">
+                        <button class="tab-button active" onclick="showChart('rewards')">Rewards</button>
+                        <button class="tab-button" onclick="showChart('queue')">Queue Length</button>
+                    </div>
+                    <div class="chart-display">
+                        <div id="rewards-chart" class="chart active">
+                            <img src="/static/rewards_comparison.png" alt="Rewards Chart" id="rewards-img">
+                        </div>
+                        <div id="queue-chart" class="chart">
+                            <img src="/static/queue_comparison.png" alt="Queue Length Chart" id="queue-img">
+                        </div>
+                    </div>
+                    <div class="chart-info">
+                        <span>Last updated: <span id="chart-update-time">-</span></span>
+                    </div>
+                </div>
+                    <div class="log-container">
+                <h2>Server Log</h2>
+                    <div class="log-controls">
+                        <button id="refresh-logs" class="log-button">Refresh</button>
+                        <button id="clear-logs" class="log-button">Clear Display</button>
+                        <div class="auto-refresh">
+                            <input type="checkbox" id="auto-refresh" checked>
+                            <label for="auto-refresh">Auto-refresh</label>
+                        </div>
+                    </div>
+                    <div class="log-box" id="log-box">
+                        <div class="log-entry">Waiting for server logs...</div>
+                    </div>
+                </div>
+                
+                <div class="agent-details">
+                    <h2>Agent Details</h2>
+                    <select id="agent-selector">
+                        <option value="">Select an agent</option>
+                    </select>
+                    <div id="agent-detail-container">
+                        <p>Select an agent to view details</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Traffic Light Control System - Central Server &copy; 2025</p>
+        </footer>
+    </div>
+    
+    <script src="/static/dashboard.js"></script>
+</body>
+</html>

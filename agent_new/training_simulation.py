@@ -3,6 +3,7 @@ import numpy as np
 import random
 import timeit
 import os
+import time
 from agent_communicator import AgentCommunicatorTraining
 
 # phase codes based on environment.net.xml
@@ -231,6 +232,25 @@ class Simulation:
         state = np.zeros(self._num_states)
         car_list = traci.vehicle.getIDList()
 
+        # Additional traffic data for inter-intersection coordination
+        traffic_data = {
+            'queue_length': self._get_queue_length(),
+            'current_phase': traci.trafficlight.getPhase("TL"),
+            'incoming_vehicles': {
+                'N': traci.edge.getLastStepVehicleNumber("N2TL"),
+                'S': traci.edge.getLastStepVehicleNumber("S2TL"),
+                'E': traci.edge.getLastStepVehicleNumber("E2TL"),
+                'W': traci.edge.getLastStepVehicleNumber("W2TL")
+            },
+            'avg_speed': {
+                'N': traci.edge.getLastStepMeanSpeed("N2TL"),
+                'S': traci.edge.getLastStepMeanSpeed("S2TL"),
+                'E': traci.edge.getLastStepMeanSpeed("E2TL"),
+                'W': traci.edge.getLastStepMeanSpeed("W2TL")
+            },
+            'waiting_time': sum(self._waiting_times.values()) if hasattr(self, '_waiting_times') else 0
+        }
+
         for car_id in car_list:
             lane_pos = traci.vehicle.getLanePosition(car_id)
             lane_id = traci.vehicle.getLaneID(car_id)
@@ -291,6 +311,9 @@ class Simulation:
             if valid_car:
                 state[car_position] = 1  # write the position of the car car_id in the state array in the form of "cell occupied"
 
+        if self.communicator:
+            self.communicator.send_state(state.tolist(), self._step, traffic_data)
+            
         return state
 
 
@@ -352,4 +375,34 @@ class Simulation:
             self.communicator.update_status("terminated")
             self.communicator.stop_background_sync()
             self.communicator.sync_with_server()  # Final sync
+
+
+    def _adjust_timing(self, coordination_data):
+        """
+        Adjust traffic light timing based on coordination data from central server
+        
+        Args:
+            coordination_data: Dictionary containing timing adjustments
+        """
+        if not coordination_data:
+            return
+            
+        # Example coordination data might include:
+        # - recommended_phase: The phase to switch to
+        # - duration_adjustment: How much to extend/shorten current phase
+        # - priority_direction: Which direction has priority
+        
+        if 'recommended_phase' in coordination_data:
+            # Switch to recommended phase if different from current
+            recommended_phase = coordination_data['recommended_phase']
+            current_phase = traci.trafficlight.getPhase("TL")
+            
+            if current_phase != recommended_phase:
+                # First set yellow phase if needed
+                if current_phase % 2 == 0:  # If we're in a green phase
+                    self._set_yellow_phase(current_phase // 2)
+                    traci.simulationStep()  # Execute the yellow phase
+                    
+                # Then set the recommended green phase
+                self._set_green_phase(recommended_phase // 2)
 

@@ -12,6 +12,8 @@ from folium.plugins import MarkerCluster
 import math
 import xml.etree.ElementTree as ET
 from collections import deque
+import matplotlib
+matplotlib.use('Agg')  # Use non-interactive backend
 
 app = Flask(__name__)
 CORS(app)  # Cho phép truy cập từ Flutter Web
@@ -52,6 +54,7 @@ def generate_intersection_map():
     valid_intersections = {}
     
     # Add markers for each agent with location data
+    has_markers = False
     for agent_id, data in agent_data.items():
         # Check if location data exists
         if 'topology' in data and 'location' in data['topology']:
@@ -97,6 +100,8 @@ def generate_intersection_map():
                         'environment': data['topology'].get('environment', {}) if 'topology' in data else {}
                     }
                     
+                    has_markers = True
+                    
                 except (ValueError, TypeError) as e:
                     print(f"Error processing location for agent {agent_id}: {e}")
     
@@ -122,12 +127,21 @@ def generate_intersection_map():
                     ).add_to(m)
                     connections_drawn.add((id1, id2))
     
+    # If no valid markers were added, add a default one
+    if not has_markers:
+        folium.Marker(
+            location=default_center,
+            popup="Default Location (No Agent Data)",
+            tooltip="Default Location",
+            icon=folium.Icon(color='blue', icon='info-sign')
+        ).add_to(m)
+    
     # Save to static directory for serving
     map_path = 'static/intersection_map.html'
     m.save(map_path)
     
     # Also save as template
-    with open('templates/map.html', 'w') as f:
+    with open('templates/map.html', 'w', encoding='utf-8') as f:  # Add encoding='utf-8'
         f.write('''
 <!DOCTYPE html>
 <html>
@@ -279,6 +293,8 @@ def serve_static(filename):
 def update_data():
     """Endpoint for agents to send their data"""
     try:
+        # Todo: remove this full update log
+        log_event(f"Received full update from agent: {request.json}")
         data = request.json
         agent_id = data.get('agent_id')
         
@@ -384,6 +400,157 @@ def show_map():
 def get_logs():
     """Endpoint to retrieve server logs"""
     return jsonify({'logs': list(server_logs)})
+
+@app.route('/api/update', methods=['POST'])
+def receive_updates():
+    """Endpoint for agents to send their data"""
+    try:
+        data = request.json
+        log_event(f"Received full update from agent: {data}")
+        agent_id = data.get('agent_id')
+        
+        if not agent_id:
+            log_event("ERROR: Received update without agent_id")
+            return jsonify({'status': 'error', 'message': 'Missing agent_id'}), 400
+        
+        # Store the update time
+        last_update[agent_id] = time.time()
+        
+        # Initialize agent data if it doesn't exist
+        if agent_id not in agent_data:
+            agent_data[agent_id] = {}
+            log_event(f"New agent registered: {agent_id}")
+        
+        # Store the agent's state data if present
+        if 'states' in data:
+            log_event(f"Received state data from Agent {agent_id}")
+            store_agent_states(agent_id, data['states'])
+        
+        # Special handling for topology data - only update it once
+        if 'topology' in data and 'topology' not in agent_data[agent_id]:
+            log_event(f"Received topology data from Agent {agent_id}")
+            agent_data[agent_id]['topology'] = data['topology']
+            try:
+                generate_intersection_map()
+            except Exception as e:
+                log_event(f"Error generating map after topology update: {e}")
+        
+        # Update other agent data
+        for key, value in data.items():
+            if key != 'agent_id' and key != 'topology' and key != 'states':
+                agent_data[agent_id][key] = value
+        
+        return jsonify({'status': 'success'}), 200
+    
+    except Exception as e:
+        log_event(f"ERROR in receive_updates: {str(e)}")
+        return jsonify({'status': 'error', 'message': str(e)}), 500
+    
+coordination_storage = {}  # Simple in-memory storage for coordination data
+
+def store_agent_states(agent_id, states):
+    """Store state data received from an agent"""
+    if agent_id not in agent_data:
+        agent_data[agent_id] = {}
+    
+    agent_data[agent_id]['states'] = states
+    log_event(f"Stored {len(states)} states from agent {agent_id}")
+    
+    # Trigger coordination processing when new states arrive
+    process_all_intersections()
+
+def get_intersection_topology():
+    """Get topology data for all intersections"""
+    topology = {}
+    for agent_id, data in agent_data.items():
+        if 'topology' in data:
+            topology[agent_id] = data['topology']
+    return topology
+
+def store_coordination_data(agent_id, data):
+    """Store coordination data for an agent"""
+    coordination_storage[agent_id] = {
+        'data': data,
+        'timestamp': time.time()
+    }
+
+def retrieve_coordination_data(agent_id):
+    """Retrieve coordination data for an agent"""
+    # Return hardcoded data if nothing specific is stored
+    if agent_id not in coordination_storage:
+        # Hardcoded coordination data with default timing
+        return {
+            'recommended_phase': 0,  # NS_GREEN phase
+            'duration_adjustment': 5,  # extend by 5 seconds
+            'priority_direction': 'NS'  # prioritize north-south direction
+        }
+    
+    return coordination_storage[agent_id]['data']
+
+def process_all_intersections():
+    """Process states from all intersections to generate coordination"""
+    all_states = get_all_agent_states()
+    if not all_states:
+        return
+    
+    # Hardcoded coordination logic - alternating priorities based on agent ID
+    for agent_id, states in all_states.items():
+        if not states:
+            continue
+            
+        latest_state = states[-1]  # Get most recent state
+        traffic_data = latest_state.get('traffic_data', {})
+        
+        # Simple logic: if queue length is high in a direction, prioritize that direction
+        queue_length = traffic_data.get('queue_length', 0)
+        incoming = traffic_data.get('incoming_vehicles', {})
+        
+        # Determine direction with highest traffic
+        ns_traffic = (incoming.get('N', 0) + incoming.get('S', 0))
+        ew_traffic = (incoming.get('E', 0) + incoming.get('W', 0))
+        
+        if ns_traffic > ew_traffic:
+            recommended_phase = 0  # NS_GREEN
+            priority = 'NS'
+        else:
+            recommended_phase = 2  # EW_GREEN
+            priority = 'EW'
+            
+        # Create coordination data
+        coordination_data = {
+            'recommended_phase': recommended_phase,
+            'duration_adjustment': min(5, queue_length),  # Up to 5 seconds based on queue
+            'priority_direction': priority
+        }
+        
+        # Store the coordination data
+        store_coordination_data(agent_id, coordination_data)
+        log_event(f"Generated coordination for agent {agent_id}: priority={priority}")
+        
+def get_all_agent_states():
+    """Retrieve states from all agents"""
+    all_states = {}
+    for agent_id, data in agent_data.items():
+        if 'states' in data:
+            all_states[agent_id] = data['states']
+    return all_states
+
+def calculate_travel_times(topology):
+    """Calculate travel times between intersections based on topology"""
+    travel_times = {}
+    for agent_id, data in topology.items():
+        if 'connections' in data:
+            for connection in data['connections']:
+                # Calculate travel time based on distance and speed limit
+                distance = haversine_distance(
+                    (data['location']['latitude'], data['location']['longitude']),
+                    (connection['latitude'], connection['longitude'])
+                )
+                speed_limit = connection.get('speed_limit', 1)  # Default to 1 m/s to avoid division by zero
+                travel_time = distance / speed_limit
+                travel_times[(agent_id, connection['agent_id'])] = travel_time
+    return travel_times
+
 
 if __name__ == '__main__':
     # Create template files if they don't exist
@@ -1111,6 +1278,13 @@ function getStatusBadge(status) {
     return `<span class="status-badge ${badgeClass}">${status}</span>`;
 }''')
 
+    # Generate an initial map
+    try:
+        generate_intersection_map()
+        print("Generated initial map")
+    except Exception as e:
+        print(f"Error generating initial map: {e}")
+    
     # Start the background thread for saving data
     bg_thread = threading.Thread(target=save_data_periodically, daemon=True)
     bg_thread.start()
