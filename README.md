@@ -73,13 +73,15 @@ The project directory is organized as follows:
     To start training with a specific configuration:
 
     ```bash
-    python ./agent_new/train_with_server.py --server-config server_config_1.ini
+    cd /agent_new
+
+    python train_with_server.py --server-config server_config_1.ini
     ```
 
     You can run multiple agents with different configurations by using different config files:
 
     ```bash
-    python ./agent_new/train_with_server.py --server-config server_config_2.ini
+    python train_with_server.py --server-config server_config_2.ini
     ```
 
 3.  **View the Dashboard**

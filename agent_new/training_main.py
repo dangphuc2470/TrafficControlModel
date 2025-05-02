@@ -5,7 +5,7 @@ import os
 import datetime
 from shutil import copyfile
 
-from agent.training_simulation import Simulation
+from training_simulation import Simulation
 from generator import TrafficGenerator
 from memory import Memory
 from model import TrainModel

@@ -32,7 +32,9 @@ class TrainModel:
         outputs = layers.Dense(self._output_dim, activation='linear')(x)
 
         model = keras.Model(inputs=inputs, outputs=outputs, name='my_model')
-        model.compile(loss=losses.mean_squared_error, optimizer=Adam(lr=self._learning_rate))
+        # Use the legacy optimizer to avoid the M1/M2 Mac performance issues
+        self.optimizer = tf.keras.optimizers.legacy.Adam(learning_rate=self._learning_rate)
+        model.compile(loss=losses.mean_squared_error, optimizer=self.optimizer)
         return model
     
 

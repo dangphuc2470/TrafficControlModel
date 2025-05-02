@@ -1,119 +1,1 @@
-absl-py              2.1.0
-anyio                3.7.1
-astor                0.8.1
-backcall             0.2.0
-branca               0.8.1
-cachetools           4.2.4
-certifi              2025.1.31
-charset-normalizer   3.4.1
-click                8.1.8
-colorama             0.4.6
-cycler               0.11.0
-debugpy              1.7.0
-decorator            5.1.1
-distlib              0.3.9
-editables            0.5
-entrypoints          0.4
-exceptiongroup       1.2.2
-filelock             3.12.2
-Flask                2.2.5
-Flask-Cors           5.0.0
-folium               0.16.0
-fonttools            4.38.0
-gast                 0.2.2
-google-auth          1.35.0
-google-auth-oauthlib 0.4.6
-google-pasta         0.2.0
-graphviz             0.20.1
-grpcio               1.62.3
-h11                  0.14.0
-h5py                 2.10.0
-hatch                1.7.0
-hatchling            1.17.1
-httpcore             0.17.3
-httpx                0.24.1
-hyperlink            21.0.0
-idna                 3.10
-importlib-metadata   6.7.0
-importlib-resources  5.12.0
-ipykernel            6.16.2
-ipython              7.34.0
-itsdangerous         2.1.2
-jaraco.classes       3.2.3
-jedi                 0.19.2
-Jinja2               3.1.6
-jupyter_client       7.4.9
-jupyter_core         4.12.0
-Keras-Applications   1.0.8
-Keras-Preprocessing  1.1.2
-keyring              24.1.1
-kiwisolver           1.4.5
-Markdown             3.4.4
-markdown-it-py       2.2.0
-MarkupSafe           2.1.5
-matplotlib           3.5.3
-matplotlib-inline    0.1.6
-mdurl                0.1.2
-more-itertools       9.1.0
-nest-asyncio         1.6.0
-numpy                1.21.6
-oauthlib             3.2.2
-opencv-python        4.11.0.86
-opt-einsum           3.3.0
-packaging            24.0
-pandas               1.1.5
-parso                0.8.4
-pathspec             0.11.2
-pexpect              4.9.0
-pickleshare          0.7.5
-Pillow               9.5.0
-pip                  24.0
-platformdirs         4.0.0
-pluggy               1.2.0
-prompt_toolkit       3.0.48
-protobuf             3.20.0
-psutil               6.1.1
-ptyprocess           0.7.0
-pyasn1               0.5.1
-pyasn1-modules       0.3.0
-pydot                2.0.0
-Pygments             2.17.2
-pyparsing            3.1.4
-pyperclip            1.9.0
-python-dateutil      2.9.0.post0
-pytz                 2025.2
-pywin32              308
-pywin32-ctypes       0.2.3
-pyzmq                26.2.1
-requests             2.31.0
-requests-oauthlib    2.0.0
-rich                 13.8.1
-rsa                  4.9
-setuptools           68.0.0
-shellingham          1.5.4
-six                  1.17.0
-sniffio              1.3.1
-sumolib              1.22.0
-tensorboard          2.0.2
-tensorflow           2.0.0
-tensorflow-estimator 2.0.1
-tensorflow-gpu       2.0.0
-termcolor            2.3.0
-tomli                2.0.1
-tomli_w              1.0.0
-tomlkit              0.12.5
-tornado              6.2
-tqdm                 4.67.1
-traci                1.22.0
-traitlets            5.9.0
-trove-classifiers    2025.4.11.15
-typing_extensions    4.7.1
-urllib3              1.26.16
-userpath             1.9.2
-virtualenv           20.26.6
-wcwidth              0.2.13
-Werkzeug             2.2.3
-wheel                0.42.0
-wrapt                1.16.0
-xyzservices          2023.2.0
-zipp                 3.15.0
+absl-py==2.1.0anyio==3.7.1astor==0.8.1backcall==0.2.0branca==0.8.1cachetools==4.2.4certifi==2025.1.31charset-normalizer==3.4.1click==8.1.8colorama==0.4.6cycler==0.11.0debugpy==1.7.0decorator==5.1.1distlib==0.3.9editables==0.5entrypoints==0.4exceptiongroup==1.2.2filelock==3.12.2Flask==2.2.5Flask-Cors==5.0.0folium==0.16.0fonttools==4.38.0gast==0.2.2google-auth==1.35.0google-auth-oauthlib==0.4.6google-pasta==0.2.0graphviz==0.20.1grpcio==1.62.3h11==0.14.0h5py==2.10.0hatch==1.7.0hatchling==1.17.1httpcore==0.17.3httpx==0.24.1hyperlink==21.0.0idna==3.10importlib-metadata==6.7.0importlib-resources==5.12.0ipykernel==6.16.2ipython==7.34.0itsdangerous==2.1.2jaraco.classes==3.2.3jedi==0.19.2Jinja2==3.1.6jupyter_client==7.4.9jupyter_core==4.12.0Keras-Applications==1.0.8Keras-Preprocessing==1.1.2keyring==24.1.1kiwisolver==1.4.5Markdown==3.4.4markdown-it-py==2.2.0MarkupSafe==2.1.5matplotlib==3.5.3matplotlib-inline==0.1.6mdurl==0.1.2more-itertools==9.1.0nest-asyncio==1.6.0numpy==1.21.6oauthlib==3.2.2opencv-python==4.11.0.86opt-einsum==3.3.0packaging==24.0pandas==1.1.5parso==0.8.4pathspec==0.11.2pexpect==4.9.0pickleshare==0.7.5Pillow==9.5.0pip==24.0platformdirs==4.0.0pluggy==1.2.0prompt_toolkit==3.0.48protobuf==3.20.0psutil==6.1.1ptyprocess==0.7.0pyasn1==0.5.1pyasn1-modules==0.3.0pydot==2.0.0Pygments==2.17.2pyparsing==3.1.4pyperclip==1.9.0python-dateutil==2.9.0.post0pytz==2025.2pywin32==308pywin32-ctypes==0.2.3pyzmq==26.2.1requests==2.31.0requests-oauthlib==2.0.0rich==13.8.1rsa==4.9setuptools==68.0.0shellingham==1.5.4six==1.17.0sniffio==1.3.1sumolib==1.22.0tensorboard==2.0.2tensorflow==2.0.0tensorflow-estimator==2.0.1tensorflow-gpu==2.0.0termcolor==2.3.0tomli==2.0.1tomli_w==1.0.0tomlkit==0.12.5tornado==6.2tqdm==4.67.1traci==1.22.0traitlets==5.9.0trove-classifiers==2025.4.11.15typing_extensions==4.7.1urllib3==1.26.16userpath==1.9.2virtualenv==20.26.6wcwidth==0.2.13Werkzeug==2.2.3wheel==0.42.0wrapt==1.16.0xyzservices==2023.2.0zipp==3.15.0
