@@ -64,12 +64,16 @@ class Simulation:
         """
         start_time = timeit.default_timer()
 
+        # Get sync timing data if communicator is available
+        if self.communicator:
+            sync_data = self.communicator.get_sync_timing()
+            if sync_data:
+                self._adjust_timing(sync_data)
+            self.communicator.update_status("simulating")
+
         # first, generate the route file for this simulation and set up sumo
         self._TrafficGen.generate_routefile(seed=episode)
         traci.start(self._sumo_cmd)
-        
-        if self.communicator:
-            self.communicator.update_status("simulating")
         
         print("Simulating...")
 
@@ -377,32 +381,31 @@ class Simulation:
             self.communicator.sync_with_server()  # Final sync
 
 
-    def _adjust_timing(self, coordination_data):
+    def _adjust_timing(self, sync_data):
         """
-        Adjust traffic light timing based on coordination data from central server
+        Adjust timing based on sync data from the server
         
         Args:
-            coordination_data: Dictionary containing timing adjustments
+            sync_data: Dictionary containing sync timing data for this intersection
         """
-        if not coordination_data:
+        if not sync_data:
             return
             
-        # Example coordination data might include:
-        # - recommended_phase: The phase to switch to
-        # - duration_adjustment: How much to extend/shorten current phase
-        # - priority_direction: Which direction has priority
-        
-        if 'recommended_phase' in coordination_data:
-            # Switch to recommended phase if different from current
-            recommended_phase = coordination_data['recommended_phase']
-            current_phase = traci.trafficlight.getPhase("TL")
-            
-            if current_phase != recommended_phase:
-                # First set yellow phase if needed
-                if current_phase % 2 == 0:  # If we're in a green phase
-                    self._set_yellow_phase(current_phase // 2)
-                    traci.simulationStep()  # Execute the yellow phase
-                    
-                # Then set the recommended green phase
-                self._set_green_phase(recommended_phase // 2)
+        # Get the optimal offset for each connected intersection
+        for target_id, timing in sync_data.items():
+            if 'optimal_offset_sec' in timing:
+                offset = timing['optimal_offset_sec']
+                cycle_time = timing.get('cycle_time_sec', self._green_duration * 2)
+                
+                # Adjust green duration based on sync timing
+                # This is a simple adjustment - you might want to make this more sophisticated
+                if offset > 0:
+                    # Extend green duration to accommodate offset
+                    self._green_duration = min(self._green_duration + offset, cycle_time - self._yellow_duration)
+                else:
+                    # Reduce green duration to accommodate offset
+                    self._green_duration = max(self._green_duration + offset, self._yellow_duration + 5)
+                
+                print(f"Adjusted timing for sync with {target_id}: offset={offset}s, cycle={cycle_time}s, green={self._green_duration}s")
+                break  # For now, just use the first sync timing we find
 
