@@ -212,26 +212,25 @@ class AgentCommunicatorTraining:
         # Get current traffic speeds from SUMO if available
         avg_speeds = {}
         try:
-            if traci.isConnected():
-                traffic_speeds = {}
-                for vehicle_id in traci.vehicle.getIDList():
-                    speed = traci.vehicle.getSpeed(vehicle_id)
-                    edge = traci.vehicle.getRoadID(vehicle_id)
-                    if edge not in traffic_speeds:
-                        traffic_speeds[edge] = []
-                    traffic_speeds[edge].append(speed)
-                
-                # Calculate average speed for each edge
-                for edge, speeds in traffic_speeds.items():
-                    if speeds:
-                        avg_speeds[edge] = sum(speeds) / len(speeds)
-                
-                # Add average speeds to traffic data
-                if traffic_data is None:
-                    traffic_data = {}
-                traffic_data['avg_speed'] = avg_speeds
-                
-                logger.info(f"Calculated average speeds: {avg_speeds}")
+            traffic_speeds = {}
+            for vehicle_id in traci.vehicle.getIDList():
+                speed = traci.vehicle.getSpeed(vehicle_id)
+                edge = traci.vehicle.getRoadID(vehicle_id)
+                if edge not in traffic_speeds:
+                    traffic_speeds[edge] = []
+                traffic_speeds[edge].append(speed)
+            
+            # Calculate average speed for each edge
+            for edge, speeds in traffic_speeds.items():
+                if speeds:
+                    avg_speeds[edge] = sum(speeds) / len(speeds)
+            
+            # Add average speeds to traffic data
+            if traffic_data is None:
+                traffic_data = {}
+            traffic_data['avg_speed'] = avg_speeds
+            
+            logger.info(f"Calculated average speeds: {avg_speeds}")
         except Exception as e:
             logger.error(f"Warning: Could not get traffic speeds: {e}")
         

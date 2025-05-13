@@ -85,8 +85,11 @@ class SyncDRLModel:
         inputs = Input(shape=(self.max_state_dim,))
         x = inputs
         
-        # Add a reshape layer to handle variable input
-        x = Reshape((self.max_intersections, -1))(x)
+        # Calculate features per intersection
+        features_per_intersection = self.features_per_intersection + (self.max_intersections - 1) * self.features_per_pair
+        
+        # Reshape to handle variable number of intersections
+        x = Reshape((self.max_intersections, features_per_intersection))(x)
         x = Flatten()(x)
         
         for size in hidden_sizes:
@@ -104,8 +107,11 @@ class SyncDRLModel:
         state_inputs = Input(shape=(self.max_state_dim,))
         action_inputs = Input(shape=(self.action_dim,))
         
-        # Process state inputs
-        x = Reshape((self.max_intersections, -1))(state_inputs)
+        # Calculate features per intersection
+        features_per_intersection = self.features_per_intersection + (self.max_intersections - 1) * self.features_per_pair
+        
+        # Reshape state inputs
+        x = Reshape((self.max_intersections, features_per_intersection))(state_inputs)
         x = Flatten()(x)
         
         # Combine with action inputs
