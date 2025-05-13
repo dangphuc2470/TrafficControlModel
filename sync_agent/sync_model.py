@@ -89,7 +89,15 @@ class SyncDRLModel:
         features_per_intersection = self.features_per_intersection + (self.max_intersections - 1) * self.features_per_pair
         
         # Reshape to handle variable number of intersections
-        x = Reshape((self.max_intersections, features_per_intersection))(x)
+        # Ensure the reshape dimensions match the input size
+        if self.max_state_dim % self.max_intersections == 0:
+            features_per_intersection = self.max_state_dim // self.max_intersections
+            x = Reshape((self.max_intersections, features_per_intersection))(x)
+        else:
+            # If dimensions don't match exactly, use a dense layer to adjust
+            x = Dense(self.max_intersections * features_per_intersection)(x)
+            x = Reshape((self.max_intersections, features_per_intersection))(x)
+        
         x = Flatten()(x)
         
         for size in hidden_sizes:
@@ -111,7 +119,15 @@ class SyncDRLModel:
         features_per_intersection = self.features_per_intersection + (self.max_intersections - 1) * self.features_per_pair
         
         # Reshape state inputs
-        x = Reshape((self.max_intersections, features_per_intersection))(state_inputs)
+        # Ensure the reshape dimensions match the input size
+        if self.max_state_dim % self.max_intersections == 0:
+            features_per_intersection = self.max_state_dim // self.max_intersections
+            x = Reshape((self.max_intersections, features_per_intersection))(state_inputs)
+        else:
+            # If dimensions don't match exactly, use a dense layer to adjust
+            x = Dense(self.max_intersections * features_per_intersection)(state_inputs)
+            x = Reshape((self.max_intersections, features_per_intersection))(x)
+        
         x = Flatten()(x)
         
         # Combine with action inputs
