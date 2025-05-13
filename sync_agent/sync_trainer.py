@@ -39,7 +39,8 @@ class SyncTrainer:
         output_path="../central_server_old/server_data/sync_times.json",
         update_interval=60,  # seconds between updates
         train_interval=30,   # seconds between training batches
-        save_interval=3600,  # seconds between model saves
+        save_interval=300,   # seconds between model saves (5 minutes)
+        max_saved_models=10, # maximum number of models to keep
         batch_size=64,
         buffer_capacity=100000,
         min_buffer_size=1000,
@@ -197,9 +198,6 @@ class SyncTrainer:
             except Exception as e:
                 logger.error(f"Error in training loop: {e}", exc_info=True)
                 time.sleep(10)  # Sleep on error to prevent rapid retries
-
-
-
 
     def _update_agent_data(self):
         """
@@ -366,15 +364,42 @@ class SyncTrainer:
             logger.error(f"Error saving sync times: {e}")
     
     def _save_model(self):
-        """Save model to disk"""
+        """Save model to disk with timestamp"""
         if self.model is not None:
             try:
-                model_path = os.path.join(self.model_dir, "sync_model")
-                self.model.save_models(model_path)
-                logger.info(f"Saved model to {model_path}")
+                # Create timestamp for this save
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                model_dir = os.path.join(self.model_dir, f"model_{timestamp}")
+                os.makedirs(model_dir, exist_ok=True)
                 
-                # Also save training metrics
-                self._save_metrics()
+                # Save model
+                model_path = os.path.join(model_dir, "sync_model")
+                self.model.save_models(model_path)
+                
+                # Save buffer
+                buffer_path = os.path.join(model_dir, "replay_buffer.json")
+                self.replay_buffer.save_buffer(buffer_path)
+                
+                # Save metrics
+                metrics_path = os.path.join(model_dir, "training_metrics.csv")
+                with open(metrics_path, 'w') as f:
+                    f.write("episode,reward,avg_waiting_time,avg_queue_length\n")
+                    for i, (reward, metrics) in enumerate(zip(self.episode_rewards, self.episode_metrics)):
+                        f.write(f"{i},{reward},{metrics['avg_waiting_time']},{metrics['avg_queue_length']}\n")
+                
+                # Generate plots
+                plots_dir = os.path.join(model_dir, "plots")
+                os.makedirs(plots_dir, exist_ok=True)
+                self._generate_plots(plots_dir)
+                
+                # Get all model directories and generate comparison plots
+                model_dirs = [d for d in os.listdir(self.model_dir) 
+                            if os.path.isdir(os.path.join(self.model_dir, d)) 
+                            and d.startswith("model_")]
+                model_dirs.sort(reverse=True)  # Sort by timestamp (newest first)
+                self._generate_comparison_plots(model_dirs)
+                
+                logger.info(f"Saved model snapshot to {model_dir}")
                 
                 # Update last save time
                 self.last_model_save = time.time()
@@ -390,34 +415,13 @@ class SyncTrainer:
         except Exception as e:
             logger.error(f"Error saving replay buffer: {e}")
     
-    def _save_metrics(self):
-        """Save training metrics and plots"""
-        try:
-            # Save metrics to CSV
-            metrics_path = os.path.join(self.model_dir, "training_metrics.csv")
-            with open(metrics_path, 'w') as f:
-                f.write("episode,reward,avg_waiting_time,avg_queue_length\n")
-                for i, (reward, metrics) in enumerate(zip(self.episode_rewards, self.episode_metrics)):
-                    f.write(f"{i},{reward},{metrics['avg_waiting_time']},{metrics['avg_queue_length']}\n")
-            
-            # Generate plots
-            self._generate_plots()
-            
-            logger.info(f"Saved training metrics to {metrics_path}")
-        except Exception as e:
-            logger.error(f"Error saving metrics: {e}")
-    
-    def _generate_plots(self):
+    def _generate_plots(self, plots_dir):
         """Generate training plots"""
         try:
             # Extract metrics
             rewards = self.episode_rewards
             waiting_times = [m['avg_waiting_time'] for m in self.episode_metrics]
             queue_lengths = [m['avg_queue_length'] for m in self.episode_metrics]
-            
-            # Create plots directory
-            plots_dir = os.path.join(self.model_dir, "plots")
-            os.makedirs(plots_dir, exist_ok=True)
             
             # Plot rewards
             plt.figure(figsize=(10, 6))
@@ -449,3 +453,131 @@ class SyncTrainer:
             logger.info(f"Generated training plots in {plots_dir}")
         except Exception as e:
             logger.error(f"Error generating plots: {e}")
+    
+    def _cleanup_old_models(self):
+        """Remove old model snapshots keeping only the most recent ones"""
+        try:
+            # Get all model directories
+            model_dirs = [d for d in os.listdir(self.model_dir) 
+                         if os.path.isdir(os.path.join(self.model_dir, d)) 
+                         and d.startswith("model_")]
+            
+            # Sort by timestamp (newest first)
+            model_dirs.sort(reverse=True)
+            
+            # Generate comparison plots before removing old models
+            self._generate_comparison_plots(model_dirs)
+            
+            # # Remove excess models
+            # for old_dir in model_dirs[self.max_saved_models:]:
+            #     old_path = os.path.join(self.model_dir, old_dir)
+            #     try:
+            #         import shutil
+            #         shutil.rmtree(old_path)
+            #         logger.info(f"Removed old model snapshot: {old_dir}")
+            #     except Exception as e:
+            #         logger.error(f"Error removing old model {old_dir}: {e}")
+        except Exception as e:
+            logger.error(f"Error cleaning up old models: {e}")
+    
+    def _generate_comparison_plots(self, model_dirs):
+        """Generate comparison plots across all saved models"""
+        try:
+            # Create comparison directory
+            comparison_dir = os.path.join(self.model_dir, "comparison")
+            os.makedirs(comparison_dir, exist_ok=True)
+            
+            # Initialize data structures for comparison
+            all_rewards = []
+            all_waiting_times = []
+            all_queue_lengths = []
+            model_timestamps = []
+            
+            # Load metrics from each model
+            for model_dir in model_dirs:
+                metrics_path = os.path.join(self.model_dir, model_dir, "training_metrics.csv")
+                if os.path.exists(metrics_path):
+                    try:
+                        # Read metrics
+                        rewards = []
+                        waiting_times = []
+                        queue_lengths = []
+                        
+                        with open(metrics_path, 'r') as f:
+                            next(f)  # Skip header
+                            for line in f:
+                                _, reward, waiting_time, queue_length = map(float, line.strip().split(','))
+                                rewards.append(reward)
+                                waiting_times.append(waiting_time)
+                                queue_lengths.append(queue_length)
+                        
+                        # Store data
+                        all_rewards.append(rewards)
+                        all_waiting_times.append(waiting_times)
+                        all_queue_lengths.append(queue_lengths)
+                        model_timestamps.append(model_dir.replace("model_", ""))
+                        
+                    except Exception as e:
+                        logger.error(f"Error reading metrics from {model_dir}: {e}")
+            
+            if not all_rewards:
+                logger.warning("No model metrics found for comparison")
+                return
+            
+            # Plot rewards comparison
+            plt.figure(figsize=(12, 6))
+            for i, rewards in enumerate(all_rewards):
+                plt.plot(rewards, label=f"Model {model_timestamps[i]}")
+            plt.title('Rewards Comparison Across Models')
+            plt.xlabel('Episode')
+            plt.ylabel('Reward')
+            plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+            plt.tight_layout()
+            plt.savefig(os.path.join(comparison_dir, "rewards_comparison.png"))
+            plt.close()
+            
+            # Plot waiting times comparison
+            plt.figure(figsize=(12, 6))
+            for i, waiting_times in enumerate(all_waiting_times):
+                plt.plot(waiting_times, label=f"Model {model_timestamps[i]}")
+            plt.title('Waiting Times Comparison Across Models')
+            plt.xlabel('Episode')
+            plt.ylabel('Average Waiting Time (s)')
+            plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+            plt.tight_layout()
+            plt.savefig(os.path.join(comparison_dir, "waiting_times_comparison.png"))
+            plt.close()
+            
+            # Plot queue lengths comparison
+            plt.figure(figsize=(12, 6))
+            for i, queue_lengths in enumerate(all_queue_lengths):
+                plt.plot(queue_lengths, label=f"Model {model_timestamps[i]}")
+            plt.title('Queue Lengths Comparison Across Models')
+            plt.xlabel('Episode')
+            plt.ylabel('Average Queue Length')
+            plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+            plt.tight_layout()
+            plt.savefig(os.path.join(comparison_dir, "queue_lengths_comparison.png"))
+            plt.close()
+            
+            # Generate summary statistics
+            summary_path = os.path.join(comparison_dir, "model_summary.csv")
+            with open(summary_path, 'w') as f:
+                f.write("model_timestamp,avg_reward,avg_waiting_time,avg_queue_length,min_waiting_time,max_reward\n")
+                for i, timestamp in enumerate(model_timestamps):
+                    rewards = all_rewards[i]
+                    waiting_times = all_waiting_times[i]
+                    queue_lengths = all_queue_lengths[i]
+                    
+                    avg_reward = sum(rewards) / len(rewards)
+                    avg_waiting = sum(waiting_times) / len(waiting_times)
+                    avg_queue = sum(queue_lengths) / len(queue_lengths)
+                    min_waiting = min(waiting_times)
+                    max_reward = max(rewards)
+                    
+                    f.write(f"{timestamp},{avg_reward:.2f},{avg_waiting:.2f},{avg_queue:.2f},{min_waiting:.2f},{max_reward:.2f}\n")
+            
+            logger.info(f"Generated comparison plots in {comparison_dir}")
+            
+        except Exception as e:
+            logger.error(f"Error generating comparison plots: {e}")

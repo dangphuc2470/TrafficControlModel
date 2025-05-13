@@ -1,0 +1,20 @@
+{
+  "agent1": {
+    "agent2": {
+      "distance_km": 1.44,
+      "travel_time_sec": 129.18,
+      "optimal_offset_sec": 38.0,
+      "cycle_time_sec": 38,
+      "drl_optimized": true
+    }
+  },
+  "agent2": {
+    "agent1": {
+      "distance_km": 1.44,
+      "travel_time_sec": 129.18,
+      "optimal_offset_sec": 38.0,
+      "cycle_time_sec": 38,
+      "drl_optimized": true
+    }
+  }
+}

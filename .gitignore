@@ -31,3 +31,4 @@ logs/
 # python specific files
 __pycache__/
 xerces-c-3.2.3/
+/TrafficControlDashboard/
