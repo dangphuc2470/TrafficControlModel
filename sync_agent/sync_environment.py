@@ -161,6 +161,8 @@ class IntersectionSyncEnv(gym.Env):
                                 # Convert m/s to km/h and average all directions
                                 if speeds:
                                     avg_speed_kmh = sum(speeds.values()) * 3.6 / len(speeds)
+                                    # Ensure minimum speed to prevent division by zero
+                                    avg_speed_kmh = max(avg_speed_kmh, 5.0)  # Minimum 5 km/h
                                     speed_source = "realtime"
                                     logger.info(f"Using real-time speed data for {id1}-{id2}: {avg_speed_kmh:.2f} km/h")
                                 else:
@@ -187,6 +189,11 @@ class IntersectionSyncEnv(gym.Env):
                         
                     except (ValueError, KeyError, ZeroDivisionError) as e:
                         logger.error(f"Error calculating distance between {id1} and {id2}: {e}")
+                        # Set default values on error
+                        self.distances[(id1, id2)] = 0.1  # Small default distance
+                        self.travel_times[(id1, id2)] = 30  # Default travel time
+                        cycle_time = min(self.cycle_times.get(id1, 38), self.cycle_times.get(id2, 38))
+                        self.current_offsets[(id1, id2)] = 0  # Default offset
     
     def _haversine_distance(self, point1, point2):
         """Calculate the great-circle distance between two points in kilometers"""
@@ -395,3 +402,43 @@ class IntersectionSyncEnv(gym.Env):
     def get_optimal_offsets(self):
         """Return the current optimal offsets for all intersection pairs"""
         return self.current_offsets.copy()
+
+    def _get_average_speed(self, agent1, agent2):
+        """Get the average speed between two intersections based on their states"""
+        try:
+            # Get the latest states for both agents
+            states1 = self.intersection_data[agent1].get('states', [])
+            states2 = self.intersection_data[agent2].get('states', [])
+            
+            if not states1 or not states2:
+                logger.warning(f"No states data available for {agent1} or {agent2}")
+                return 40.0  # Default speed if no data available
+            
+            # Get the most recent state
+            latest_state1 = states1[-1]
+            latest_state2 = states2[-1]
+            
+            # Get speed data from traffic_data
+            speeds1 = latest_state1.get('traffic_data', {}).get('avg_speed', {})
+            speeds2 = latest_state2.get('traffic_data', {}).get('avg_speed', {})
+            
+            # Log speed data for debugging
+            logger.info(f"Agent {agent1} speeds: {speeds1}")
+            logger.info(f"Agent {agent2} speeds: {speeds2}")
+            
+            # Combine speeds from both intersections
+            all_speeds = []
+            all_speeds.extend(speeds1.values())
+            all_speeds.extend(speeds2.values())
+            
+            if all_speeds:
+                avg_speed = sum(all_speeds) / len(all_speeds)
+                logger.info(f"Calculated average speed: {avg_speed:.2f} km/h")
+                return avg_speed
+            else:
+                logger.warning(f"No speed data available for {agent1} or {agent2}")
+                return 40.0  # Default speed if no data available
+                
+        except Exception as e:
+            logger.error(f"Error calculating average speed: {e}")
+            return 40.0  # Default speed on error

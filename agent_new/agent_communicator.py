@@ -5,6 +5,10 @@ import socket
 import threading
 import os
 import numpy as np
+import traci
+import logging
+
+logger = logging.getLogger(__name__)
 
 class AgentCommunicatorTraining:
     def __init__(self, server_url, agent_id=None, mapping_config=None, env_file_path=None):
@@ -205,19 +209,53 @@ class AgentCommunicatorTraining:
         if not 'states' in self.data:
             self.data['states'] = []
         
+        # Get current traffic speeds from SUMO if available
+        avg_speeds = {}
+        try:
+            if traci.isConnected():
+                traffic_speeds = {}
+                for vehicle_id in traci.vehicle.getIDList():
+                    speed = traci.vehicle.getSpeed(vehicle_id)
+                    edge = traci.vehicle.getRoadID(vehicle_id)
+                    if edge not in traffic_speeds:
+                        traffic_speeds[edge] = []
+                    traffic_speeds[edge].append(speed)
+                
+                # Calculate average speed for each edge
+                for edge, speeds in traffic_speeds.items():
+                    if speeds:
+                        avg_speeds[edge] = sum(speeds) / len(speeds)
+                
+                # Add average speeds to traffic data
+                if traffic_data is None:
+                    traffic_data = {}
+                traffic_data['avg_speed'] = avg_speeds
+                
+                logger.info(f"Calculated average speeds: {avg_speeds}")
+        except Exception as e:
+            logger.error(f"Warning: Could not get traffic speeds: {e}")
+        
         state_data = {
             'step': step,
             'state': state,
             'timestamp': time.time(),
-            'traffic_data': traffic_data or {}
+            'traffic_data': traffic_data or {},
+            'speeds': avg_speeds  # Add speed data to state
         }
         
+        # Add to both master data and current data
         self.data['states'].append(state_data)
+        self.current_data['states'].append(state_data)
         
         # Limit the number of states we store to prevent memory issues
         if len(self.data['states']) > 100:  # Keep only the last 100 states
             self.data['states'] = self.data['states'][-100:]
         
+        # If it's been long enough since last sync, sync now
+        current_time = time.time()
+        if current_time - self.last_sync >= self.sync_interval:
+            self.sync_with_server()
+    
     def get_coordination_data(self):
         """Get coordination data from the server"""
         try:

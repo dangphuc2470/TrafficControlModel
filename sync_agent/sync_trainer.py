@@ -216,12 +216,30 @@ class SyncTrainer:
             with open(self.data_path, 'r') as f:
                 new_agent_data = json.load(f)
             
+            # Log the data we're reading
+            logger.info("Reading agent data from file:")
+            for agent_id, data in new_agent_data.items():
+                logger.info(f"Agent {agent_id}:")
+                if 'states' in data:
+                    logger.info(f"  - Has {len(data['states'])} states")
+                    if data['states']:
+                        latest_state = data['states'][-1]
+                        logger.info(f"  - Latest state step: {latest_state.get('step', 'N/A')}")
+                        if 'traffic_data' in latest_state:
+                            traffic_data = latest_state['traffic_data']
+                            logger.info(f"  - Queue length: {traffic_data.get('queue_length', 'N/A')}")
+                            logger.info(f"  - Current phase: {traffic_data.get('current_phase', 'N/A')}")
+                            logger.info(f"  - Waiting time: {traffic_data.get('waiting_time', 'N/A')}")
+                            if 'avg_speed' in traffic_data:
+                                logger.info(f"  - Average speeds: {traffic_data['avg_speed']}")
+            
             # Check for topology changes
             topology_changed = False
             
             # Case 1: New agents
             if set(new_agent_data.keys()) != set(self.agent_data.keys()):
                 topology_changed = True
+                logger.info(f"Topology changed: New agents detected")
             
             # Case 2: Topology data changed for existing agents
             for agent_id, data in new_agent_data.items():
@@ -229,6 +247,7 @@ class SyncTrainer:
                     if 'topology' in data and ('topology' not in self.agent_data[agent_id] or 
                                              data['topology'] != self.agent_data[agent_id]['topology']):
                         topology_changed = True
+                        logger.info(f"Topology changed: Agent {agent_id} topology updated")
                         break
             
             # Update agent data
@@ -289,16 +308,20 @@ class SyncTrainer:
         """
         # Skip if no agent data
         if not self.agent_data:
+            logger.warning("No agent data available for sync generation")
             return
         
         # Reset environment and get state
         state, _ = self.env.reset()
+        logger.info(f"Environment reset with state shape: {state.shape}")
         
         # Get action from policy (no exploration for production)
         action = self.model.policy(state, deterministic=True)
+        logger.info(f"Generated action: {action}")
         
         # Take a step in the environment
         next_state, reward, terminated, truncated, info = self.env.step(action)
+        logger.info(f"Environment step completed - Reward: {reward}")
         
         # Store experience in replay buffer (for training)
         self.replay_buffer.add(state, action, reward, next_state, False)
@@ -309,6 +332,16 @@ class SyncTrainer:
         
         # Get the new optimal offsets
         self.sync_times = self._format_sync_times(info['offsets'])
+        
+        # Log sync times for debugging
+        logger.info("Generated sync times:")
+        for agent1, targets in self.sync_times.items():
+            for agent2, data in targets.items():
+                logger.info(f"{agent1} -> {agent2}:")
+                logger.info(f"  - Distance: {data['distance_km']} km")
+                logger.info(f"  - Travel time: {data['travel_time_sec']} sec")
+                logger.info(f"  - Optimal offset: {data['optimal_offset_sec']} sec")
+                logger.info(f"  - Average speed: {data['avg_speed_kmh']} km/h")
         
         # Save sync times to output file
         self._save_sync_times()
@@ -347,25 +380,69 @@ class SyncTrainer:
                         distance_km = self.env.distances.get(pair, 0)
                         travel_time_sec = self.env.travel_times.get(pair, 0)
                         
+                        # Get speed data from traffic_data
+                        states1 = self.agent_data[id1].get('states', [])
+                        states2 = self.agent_data[id2].get('states', [])
+                        
+                        avg_speed = 40.0  # Default speed
+                        if states1 and states2:
+                            latest_state1 = states1[-1]
+                            latest_state2 = states2[-1]
+                            
+                            speeds1 = latest_state1.get('traffic_data', {}).get('avg_speed', {})
+                            speeds2 = latest_state2.get('traffic_data', {}).get('avg_speed', {})
+                            
+                            all_speeds = []
+                            all_speeds.extend(speeds1.values())
+                            all_speeds.extend(speeds2.values())
+                            
+                            if all_speeds:
+                                avg_speed = sum(all_speeds) / len(all_speeds)
+                        
                         # Store in the expected format
                         sync_times[id1][id2] = {
                             "distance_km": round(distance_km, 2),
                             "travel_time_sec": round(travel_time_sec, 2),
                             "optimal_offset_sec": round(offset_sec, 2),
                             "cycle_time_sec": self.env.cycle_times.get(id1, 38),
-                            "drl_optimized": True
+                            "drl_optimized": True,
+                            "avg_speed_kmh": round(avg_speed, 2)
                         }
+                        
+                        logger.info(f"Formatted sync time for {id1} -> {id2}: {sync_times[id1][id2]}")
+        
+        if not sync_times:
+            logger.warning("No sync times were generated!")
+        else:
+            logger.info(f"Generated sync times for {len(sync_times)} intersections")
         
         return sync_times
     
     def _save_sync_times(self):
         """Save sync times to output file"""
         try:
+            # Create directory if it doesn't exist
+            output_dir = os.path.dirname(self.output_path)
+            if output_dir:
+                os.makedirs(output_dir, exist_ok=True)
+            
+            # Log what we're about to save
+            logger.info(f"Saving sync times to {self.output_path}")
+            logger.info(f"Sync times data: {json.dumps(self.sync_times, indent=2)}")
+            
+            # Save the sync times
             with open(self.output_path, 'w') as f:
                 json.dump(self.sync_times, f, indent=2)
-            logger.debug(f"Saved sync times to {self.output_path}")
+            
+            # Verify the file was written
+            if os.path.exists(self.output_path):
+                file_size = os.path.getsize(self.output_path)
+                logger.info(f"Successfully saved sync times file (size: {file_size} bytes)")
+            else:
+                logger.error("Failed to save sync times file - file not created")
+                
         except Exception as e:
-            logger.error(f"Error saving sync times: {e}")
+            logger.error(f"Error saving sync times: {e}", exc_info=True)
     
     def _save_model(self):
         """Save model to disk with timestamp"""
