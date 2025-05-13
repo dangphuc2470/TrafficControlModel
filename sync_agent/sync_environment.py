@@ -3,6 +3,18 @@ import gymnasium as gym
 from gymnasium import spaces
 import math
 from collections import deque
+import logging
+
+# Set up logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.FileHandler("sync_environment.log"),
+        logging.StreamHandler()
+    ]
+)
+logger = logging.getLogger("SyncEnvironment")
 
 class IntersectionSyncEnv(gym.Env):
     """
@@ -137,6 +149,7 @@ class IntersectionSyncEnv(gym.Env):
                         
                         # Calculate travel time (average vehicle speed assumption)
                         avg_speed_kmh = 40.0  # Default average speed
+                        speed_source = "default"
                         
                         # Get actual speed if available
                         if ('states' in self.intersection_data[id1] and 
@@ -148,10 +161,23 @@ class IntersectionSyncEnv(gym.Env):
                                 # Convert m/s to km/h and average all directions
                                 if speeds:
                                     avg_speed_kmh = sum(speeds.values()) * 3.6 / len(speeds)
+                                    speed_source = "realtime"
+                                    logger.info(f"Using real-time speed data for {id1}-{id2}: {avg_speed_kmh:.2f} km/h")
+                                else:
+                                    logger.warning(f"No speed values available for {id1}-{id2}, using default speed")
+                            else:
+                                logger.warning(f"No traffic data available for {id1}-{id2}, using default speed")
+                        else:
+                            logger.warning(f"No states data available for {id1}-{id2}, using default speed")
                         
                         # Calculate travel time in seconds
                         travel_time_sec = (distance_km / avg_speed_kmh) * 3600
                         self.travel_times[(id1, id2)] = travel_time_sec
+                        
+                        logger.info(f"Travel time calculation for {id1}-{id2}: "
+                                  f"distance={distance_km:.2f}km, "
+                                  f"speed={avg_speed_kmh:.2f}km/h ({speed_source}), "
+                                  f"time={travel_time_sec:.2f}s")
                         
                         # Initialize offset if not already set
                         if (id1, id2) not in self.current_offsets:
@@ -160,7 +186,7 @@ class IntersectionSyncEnv(gym.Env):
                             self.current_offsets[(id1, id2)] = travel_time_sec % cycle_time
                         
                     except (ValueError, KeyError, ZeroDivisionError) as e:
-                        print(f"Error calculating distance between {id1} and {id2}: {e}")
+                        logger.error(f"Error calculating distance between {id1} and {id2}: {e}")
     
     def _haversine_distance(self, point1, point2):
         """Calculate the great-circle distance between two points in kilometers"""

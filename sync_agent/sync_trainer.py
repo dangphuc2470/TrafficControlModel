@@ -254,7 +254,10 @@ class SyncTrainer:
         state_dim = self.env.observation_space.shape[0]
         action_dim = self.env.action_space.shape[0]
         
-        # Initialize model with new dimensions
+        # Calculate max intersections based on current topology
+        max_intersections = len(self.agent_data)
+        
+        # Initialize model with new dimensions and max intersections
         self.model = SyncDRLModel(
             state_dim=state_dim,
             action_dim=action_dim,
@@ -262,7 +265,8 @@ class SyncTrainer:
             critic_learning_rate=3e-4,
             gamma=0.99,
             tau=0.005,
-            hidden_sizes=(256, 256)
+            hidden_sizes=(256, 256),
+            max_intersections=max_intersections
         )
         
         # Try to load existing model
@@ -275,7 +279,7 @@ class SyncTrainer:
         if not self.replay_buffer.load_buffer(buffer_path):
             logger.info("No existing buffer found, using new buffer")
         
-        logger.info(f"Model reinitialized - State dim: {state_dim}, Action dim: {action_dim}")
+        logger.info(f"Model reinitialized - State dim: {state_dim}, Action dim: {action_dim}, Max intersections: {max_intersections}")
     
     def _generate_sync_data(self):
         """

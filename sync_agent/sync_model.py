@@ -1,5 +1,5 @@
 import tensorflow as tf
-from tensorflow.keras.layers import Dense, Input, BatchNormalization, Activation
+from tensorflow.keras.layers import Dense, Input, BatchNormalization, Activation, Reshape, Flatten
 from tensorflow.keras.models import Model
 import numpy as np
 
@@ -14,7 +14,8 @@ class SyncDRLModel:
         critic_learning_rate=3e-4,
         gamma=0.99,
         tau=0.005,
-        hidden_sizes=(256, 256)
+        hidden_sizes=(256, 256),
+        max_intersections=10  # Maximum number of intersections to support
     ):
         """
         Initialize the Soft Actor-Critic model
@@ -27,11 +28,21 @@ class SyncDRLModel:
             gamma: discount factor
             tau: target network update rate
             hidden_sizes: tuple of hidden layer sizes
+            max_intersections: maximum number of intersections to support
         """
         self.state_dim = state_dim
         self.action_dim = action_dim
         self.gamma = gamma
         self.tau = tau
+        self.max_intersections = max_intersections
+        
+        # Calculate dimensions for fixed-size representation
+        self.features_per_intersection = 4  # traffic volume, queue length, waiting time, cycle time
+        self.features_per_pair = 3  # distance, travel time, current offset
+        
+        # Calculate maximum possible state dimension
+        self.max_state_dim = (self.max_intersections * self.features_per_intersection + 
+                            (self.max_intersections * (self.max_intersections - 1)) // 2 * self.features_per_pair)
         
         # Initialize actor and critic networks
         self.actor = self._build_actor(hidden_sizes)
@@ -55,10 +66,28 @@ class SyncDRLModel:
         self.critic_1_loss_metric = tf.keras.metrics.Mean('critic_1_loss', dtype=tf.float32)
         self.critic_2_loss_metric = tf.keras.metrics.Mean('critic_2_loss', dtype=tf.float32)
     
+    def _preprocess_state(self, state):
+        """Preprocess state to handle variable dimensions"""
+        if state.ndim == 1:
+            state = np.expand_dims(state, axis=0)
+        
+        # Pad or truncate state to max_state_dim
+        if state.shape[1] < self.max_state_dim:
+            padding = np.zeros((state.shape[0], self.max_state_dim - state.shape[1]))
+            state = np.concatenate([state, padding], axis=1)
+        elif state.shape[1] > self.max_state_dim:
+            state = state[:, :self.max_state_dim]
+        
+        return state
+    
     def _build_actor(self, hidden_sizes):
         """Build the actor network (policy)"""
-        inputs = Input(shape=(self.state_dim,))
+        inputs = Input(shape=(self.max_state_dim,))
         x = inputs
+        
+        # Add a reshape layer to handle variable input
+        x = Reshape((self.max_intersections, -1))(x)
+        x = Flatten()(x)
         
         for size in hidden_sizes:
             x = Dense(size)(x)
@@ -72,10 +101,15 @@ class SyncDRLModel:
     
     def _build_critic(self, hidden_sizes):
         """Build critic network (Q-value function)"""
-        state_inputs = Input(shape=(self.state_dim,))
+        state_inputs = Input(shape=(self.max_state_dim,))
         action_inputs = Input(shape=(self.action_dim,))
         
-        x = tf.concat([state_inputs, action_inputs], axis=1)
+        # Process state inputs
+        x = Reshape((self.max_intersections, -1))(state_inputs)
+        x = Flatten()(x)
+        
+        # Combine with action inputs
+        x = tf.concat([x, action_inputs], axis=1)
         
         for size in hidden_sizes:
             x = Dense(size)(x)
@@ -99,9 +133,8 @@ class SyncDRLModel:
         Returns:
             Action vector
         """
-        # Expand dims for batch processing if needed
-        if state.ndim == 1:
-            state = np.expand_dims(state, axis=0)
+        # Preprocess state to handle variable dimensions
+        state = self._preprocess_state(state)
         
         # Get action from policy
         action = self.actor.predict(state)[0]
@@ -116,6 +149,10 @@ class SyncDRLModel:
     @tf.function
     def _train_step(self, states, actions, rewards, next_states, dones):
         """Single training step for actor and critic networks"""
+        # Preprocess states
+        states = self._preprocess_state(states)
+        next_states = self._preprocess_state(next_states)
+        
         with tf.GradientTape() as actor_tape, tf.GradientTape() as critic_tape_1, tf.GradientTape() as critic_tape_2:
             # Get next actions and log probs from current policy
             next_actions = self.actor(next_states)
@@ -194,42 +231,26 @@ class SyncDRLModel:
         }
     
     def _update_target_networks(self):
-        """Update target networks with soft update"""
-        critic_1_weights = self.critic_1.get_weights()
-        target_critic_1_weights = self.target_critic_1.get_weights()
-        
-        critic_2_weights = self.critic_2.get_weights()
-        target_critic_2_weights = self.target_critic_2.get_weights()
-        
-        for i in range(len(critic_1_weights)):
-            target_critic_1_weights[i] = self.tau * critic_1_weights[i] + (1 - self.tau) * target_critic_1_weights[i]
-            
-        for i in range(len(critic_2_weights)):
-            target_critic_2_weights[i] = self.tau * critic_2_weights[i] + (1 - self.tau) * target_critic_2_weights[i]
-        
-        self.target_critic_1.set_weights(target_critic_1_weights)
-        self.target_critic_2.set_weights(target_critic_2_weights)
+        """Soft update target networks"""
+        for target, source in zip(self.target_critic_1.variables, self.critic_1.variables):
+            target.assign((1 - self.tau) * target + self.tau * source)
+        for target, source in zip(self.target_critic_2.variables, self.critic_2.variables):
+            target.assign((1 - self.tau) * target + self.tau * source)
     
-    def save_models(self, path_prefix):
-        """Save models to disk"""
-        self.actor.save(f"{path_prefix}_actor.h5")
-        self.critic_1.save(f"{path_prefix}_critic_1.h5")
-        self.critic_2.save(f"{path_prefix}_critic_2.h5")
-        print(f"Models saved to {path_prefix}_*.h5")
+    def save_models(self, path):
+        """Save model weights"""
+        self.actor.save_weights(f"{path}_actor.h5")
+        self.critic_1.save_weights(f"{path}_critic1.h5")
+        self.critic_2.save_weights(f"{path}_critic2.h5")
     
-    def load_models(self, path_prefix):
-        """Load models from disk"""
+    def load_models(self, path):
+        """Load model weights"""
         try:
-            self.actor = tf.keras.models.load_model(f"{path_prefix}_actor.h5")
-            self.critic_1 = tf.keras.models.load_model(f"{path_prefix}_critic_1.h5")
-            self.critic_2 = tf.keras.models.load_model(f"{path_prefix}_critic_2.h5")
-            
-            # Also create target networks
-            self.target_critic_1 = tf.keras.models.load_model(f"{path_prefix}_critic_1.h5")
-            self.target_critic_2 = tf.keras.models.load_model(f"{path_prefix}_critic_2.h5")
-            
-            print(f"Models loaded from {path_prefix}_*.h5")
+            self.actor.load_weights(f"{path}_actor.h5")
+            self.critic_1.load_weights(f"{path}_critic1.h5")
+            self.critic_2.load_weights(f"{path}_critic2.h5")
+            self.target_critic_1.set_weights(self.critic_1.get_weights())
+            self.target_critic_2.set_weights(self.critic_2.get_weights())
             return True
-        except (OSError, IOError) as e:
-            print(f"Error loading models: {e}")
+        except:
             return False
