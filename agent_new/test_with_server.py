@@ -8,8 +8,8 @@ import numpy as np
 import configparser
 import socket
 import timeit
+import traci
 
-# Import from parent directory
 from testing_simulation import Simulation
 from generator import TrafficGenerator
 from model import TestModel
@@ -22,31 +22,48 @@ if 'SUMO_HOME' in os.environ:
 else:
     sys.exit("Please declare the environment variable 'SUMO_HOME'")
 
-# Import traci only after SUMO_HOME is set
-import traci
-
 def read_server_config(config_file='server_config.ini'):
     """Read the server configuration file"""
     if not os.path.exists(config_file):
-        return None, None
+        return None, None, None, None
     
     config = configparser.ConfigParser()
     config.read(config_file)
     
     if 'server' not in config:
-        return None, None
+        return None, None, None, None
     
     if not config['server'].getboolean('enabled', fallback=False):
-        return None, None
+        return None, None, None, None
     
     server_url = config['server'].get('server_url', None)
     agent_id = config['server'].get('agent_id', socket.gethostname())
     
-    return server_url, agent_id
+    # Read location data if available
+    location_data = None
+    if 'location' in config:
+        location_data = {
+            'latitude': config['location'].get('latitude', None),
+            'longitude': config['location'].get('longitude', None),
+            'intersection_name': config['location'].get('intersection_name', f'Intersection {agent_id}'),
+            'orientation': config['location'].get('orientation', '0')
+        }
+    
+    # Read map configuration
+    map_config = {}
+    if 'map' in config:
+        map_config = {
+            'env_file': config['map'].get('env_file', None),
+            'route_file': config['map'].get('route_file', None),
+            'net_file': config['map'].get('net_file', None)
+        }
+    
+    return server_url, agent_id, location_data, map_config
 
 class TestingSimulationWithServer(Simulation):
     def __init__(self, Model, TrafficGen, sumo_cmd, max_steps, green_duration, 
-                 yellow_duration, num_states, num_actions, server_url=None, agent_id=None):
+                 yellow_duration, num_states, num_actions, server_url=None, agent_id=None,
+                 mapping_config=None, env_file_path=None):
         # Call the parent constructor
         super().__init__(Model, TrafficGen, sumo_cmd, max_steps, green_duration, 
                          yellow_duration, num_states, num_actions)
@@ -56,7 +73,7 @@ class TestingSimulationWithServer(Simulation):
         self._agent_id = agent_id
         
         if server_url:
-            self._communicator = AgentCommunicatorTesting(server_url, agent_id)
+            self._communicator = AgentCommunicatorTesting(server_url, agent_id, mapping_config, env_file_path)
             self._communicator.update_status("test_initialized")
             self._communicator.update_config({
                 "max_steps": max_steps,
@@ -94,6 +111,12 @@ class TestingSimulationWithServer(Simulation):
         old_total_wait = 0
         old_action = -1  # dummy init
 
+        # Get initial sync timing if available
+        if self._communicator:
+            sync_data = self._communicator.get_sync_timing()
+            if sync_data:
+                self._adjust_timing(sync_data)
+
         # Main simulation loop
         while self._step < self._max_steps:
             # Get current state of the intersection
@@ -122,12 +145,31 @@ class TestingSimulationWithServer(Simulation):
             # Add reward to episode total
             self._reward_episode.append(reward)
 
-            # Update server with intermediate results periodically
-            if self._communicator and self._step % 100 == 0:
-                self._communicator.update_intermediate_reward(
-                    sum(self._reward_episode[-100:]),
-                    np.mean(self._queue_length_episode[-100:]) if len(self._queue_length_episode) > 0 else 0
-                )
+            # Update server with state and get new sync timing
+            if self._communicator:
+                # Send current state
+                self._communicator.send_state(current_state, self._step, {
+                    'queue_length': self._get_queue_length(),
+                    'current_phase': traci.trafficlight.getPhase("TL"),
+                    'incoming_vehicles': {
+                        'N': traci.edge.getLastStepVehicleNumber("N2TL"),
+                        'S': traci.edge.getLastStepVehicleNumber("S2TL"),
+                        'E': traci.edge.getLastStepVehicleNumber("E2TL"),
+                        'W': traci.edge.getLastStepVehicleNumber("W2TL")
+                    },
+                    'avg_speed': {
+                        'N': traci.edge.getLastStepMeanSpeed("N2TL"),
+                        'S': traci.edge.getLastStepMeanSpeed("S2TL"),
+                        'E': traci.edge.getLastStepMeanSpeed("E2TL"),
+                        'W': traci.edge.getLastStepMeanSpeed("W2TL")
+                    }
+                })
+
+                # Get new sync timing periodically
+                if self._step % 60 == 0:  # Check for new sync timing every minute
+                    sync_data = self._communicator.get_sync_timing()
+                    if sync_data:
+                        self._adjust_timing(sync_data)
 
         # End simulation
         traci.close()
@@ -163,7 +205,7 @@ if __name__ == "__main__":
     model_path, plot_path = set_test_path(config['models_path_name'], config['model_to_test'])
 
     # Read server configuration
-    server_url, agent_id = read_server_config()
+    server_url, agent_id, location_data, map_config = read_server_config()
     if server_url:
         print(f"Connecting to central server at {server_url} as agent {agent_id}")
     else:
@@ -191,7 +233,9 @@ if __name__ == "__main__":
         config['num_states'],
         config['num_actions'],
         server_url,
-        agent_id
+        agent_id,
+        map_config,
+        config.get('env_file_path')
     )
     
     print("----- Testing episode")
