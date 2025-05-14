@@ -147,7 +147,10 @@ class AgentCommunicatorTraining:
                 
                 # Add mapping configuration if available
                 if self.mapping_config:
-                    topology_data.update(self.mapping_config)
+                    if isinstance(self.mapping_config, dict):
+                        topology_data.update(self.mapping_config)
+                    else:
+                        print(f"Warning: mapping_config is not a dict, got {type(self.mapping_config)}. Skipping topology update.")
                 
                 # Add environment data if available
                 if self.env_info:
@@ -236,7 +239,7 @@ class AgentCommunicatorTraining:
         
         state_data = {
             'step': step,
-            'state': state,
+            'state': state.tolist() if isinstance(state, np.ndarray) else state,
             'timestamp': time.time(),
             'traffic_data': traffic_data or {},
             'speeds': avg_speeds  # Add speed data to state
@@ -429,7 +432,10 @@ class AgentCommunicatorTesting:
             if not self.topology_sent:
                 topology_data = {}
                 if self.mapping_config:
-                    topology_data.update(self.mapping_config)
+                    if isinstance(self.mapping_config, dict):
+                        topology_data.update(self.mapping_config)
+                    else:
+                        print(f"[TEST] Warning: mapping_config is not a dict, got {type(self.mapping_config)}. Skipping topology update.")
                 if self.env_info:
                     topology_data['environment'] = self.env_info
                 if topology_data:
@@ -482,7 +488,7 @@ class AgentCommunicatorTesting:
             logger.error(f"[TEST] Warning: Could not get traffic speeds: {e}")
         state_data = {
             'step': step,
-            'state': state,
+            'state': state.tolist() if isinstance(state, np.ndarray) else state,
             'timestamp': time.time(),
             'traffic_data': traffic_data or {},
             'speeds': avg_speeds
@@ -591,3 +597,26 @@ class AgentCommunicatorTesting:
         except Exception as e:
             print(f"Error extracting environment information: {e}")
             return None
+
+    def update_status(self, status):
+        self.data['status'] = status
+        self.current_data['status'] = status
+
+    def update_config(self, config):
+        self.data['config'] = config
+        self.current_data['config'] = config
+
+    def update_model_info(self, model_info):
+        self.data['model_info'] = model_info
+        self.current_data['model_info'] = model_info
+
+    def update_episode_result(self, episode, reward, queue_length, waiting_time=None):
+        self.data['last_episode'] = episode
+        self.current_data['last_episode'] = episode
+        self.data['rewards'] = [float(reward)]
+        self.current_data['rewards'] = [float(reward)]
+        self.data['queue_lengths'] = [float(queue_length)]
+        self.current_data['queue_lengths'] = [float(queue_length)]
+        if waiting_time is not None:
+            self.data['waiting_times'] = [float(waiting_time)]
+            self.current_data['waiting_times'] = [float(waiting_time)]

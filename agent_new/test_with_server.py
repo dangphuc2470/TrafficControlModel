@@ -9,6 +9,7 @@ import configparser
 import socket
 import timeit
 import traci
+import argparse
 
 from testing_simulation import Simulation
 from generator import TrafficGenerator
@@ -22,23 +23,17 @@ if 'SUMO_HOME' in os.environ:
 else:
     sys.exit("Please declare the environment variable 'SUMO_HOME'")
 
-def read_server_config(config_file='server_config.ini'):
-    """Read the server configuration file"""
+def read_server_config(config_file='server_config_2.ini'):
     if not os.path.exists(config_file):
         return None, None, None, None
-    
     config = configparser.ConfigParser()
     config.read(config_file)
-    
     if 'server' not in config:
         return None, None, None, None
-    
     if not config['server'].getboolean('enabled', fallback=False):
         return None, None, None, None
-    
     server_url = config['server'].get('server_url', None)
     agent_id = config['server'].get('agent_id', socket.gethostname())
-    
     # Read location data if available
     location_data = None
     if 'location' in config:
@@ -48,17 +43,39 @@ def read_server_config(config_file='server_config.ini'):
             'intersection_name': config['location'].get('intersection_name', f'Intersection {agent_id}'),
             'orientation': config['location'].get('orientation', '0')
         }
-    
     # Read map configuration
     map_config = {}
     if 'map' in config:
         map_config = {
-            'env_file': config['map'].get('env_file', None),
-            'route_file': config['map'].get('route_file', None),
-            'net_file': config['map'].get('net_file', None)
+            'send_topology': config['map'].getboolean('send_topology', True),
+            'environment_file': config['map'].get('environment_file', 'intersection/environment.net.xml'),
+            'connection_distance': config['map'].getfloat('connection_distance', 1.5),
+            'connected_to': [x.strip() for x in config['map'].get('connected_to', '').split(',') if x.strip()]
         }
-    
-    return server_url, agent_id, location_data, map_config
+    else:
+        map_config = {
+            'send_topology': True,
+            'environment_file': 'intersection/environment.net.xml',
+            'connection_distance': 1.5,
+            'connected_to': []
+        }
+    # Read visualization options
+    viz_config = {}
+    if 'visualization' in config:
+        viz_config = {
+            'marker_color': config['visualization'].get('marker_color', 'green'),
+            'marker_icon': config['visualization'].get('marker_icon', 'traffic-light')
+        }
+    mapping_config = {
+        'location': location_data,
+        'map': map_config,
+        'visualization': viz_config
+    }
+    env_file_path = map_config['environment_file'] if map_config['send_topology'] else None
+    if env_file_path and not os.path.exists(env_file_path):
+        print(f"Warning: Environment file not found at {env_file_path}")
+        env_file_path = None
+    return server_url, agent_id, mapping_config, env_file_path
 
 class TestingSimulationWithServer(Simulation):
     def __init__(self, Model, TrafficGen, sumo_cmd, max_steps, green_duration, 
@@ -199,13 +216,16 @@ class TestingSimulationWithServer(Simulation):
             self._communicator.sync_with_server()  # Final sync
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--server-config', type=str, default='server_config_1.ini')
+    args = parser.parse_args()
     # Configure the test
     config = import_test_configuration(config_file='testing_settings.ini')
     sumo_cmd = set_sumo(config['gui'], config['sumocfg_file_name'], config['max_steps'])
     model_path, plot_path = set_test_path(config['models_path_name'], config['model_to_test'])
 
     # Read server configuration
-    server_url, agent_id, location_data, map_config = read_server_config()
+    server_url, agent_id, location_data, map_config = read_server_config(args.server_config)
     if server_url:
         print(f"Connecting to central server at {server_url} as agent {agent_id}")
     else:
