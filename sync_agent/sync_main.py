@@ -23,6 +23,8 @@ def main():
                         help='Seconds between training batches')
     parser.add_argument('--save-interval', type=int, default=3600,
                         help='Seconds between model saves')
+    parser.add_argument('--batch-size', type=int, default=2, help='Training batch size')
+    parser.add_argument('--min-buffer-size', type=int, default=2, help='Minimum buffer size before training')
     
     args = parser.parse_args()
     
@@ -33,7 +35,9 @@ def main():
         output_path=args.output_path,
         update_interval=args.update_interval,
         train_interval=args.train_interval,
-        save_interval=args.save_interval
+        save_interval=args.save_interval,
+        batch_size=args.batch_size,
+        min_buffer_size=args.min_buffer_size
     )
     
     # Start training

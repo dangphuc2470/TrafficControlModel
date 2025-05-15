@@ -1,6 +1,7 @@
 import tensorflow as tf
 from tensorflow.keras.layers import Dense, Input, BatchNormalization, Activation, Reshape, Flatten
 from tensorflow.keras.models import Model
+from tensorflow.keras.optimizers.legacy import Adam
 import numpy as np
 
 class SyncDRLModel:
@@ -57,9 +58,9 @@ class SyncDRLModel:
         self.target_critic_1.set_weights(self.critic_1.get_weights())
         self.target_critic_2.set_weights(self.critic_2.get_weights())
         
-        # Set up optimizers
-        self.actor_optimizer = tf.keras.optimizers.Adam(learning_rate=actor_learning_rate)
-        self.critic_optimizer = tf.keras.optimizers.Adam(learning_rate=critic_learning_rate)
+        # Set up optimizers using legacy Adam
+        self.actor_optimizer = Adam(learning_rate=actor_learning_rate)
+        self.critic_optimizer = Adam(learning_rate=critic_learning_rate)
         
         # Set up training metrics
         self.actor_loss_metric = tf.keras.metrics.Mean('actor_loss', dtype=tf.float32)
@@ -68,14 +69,20 @@ class SyncDRLModel:
     
     def _preprocess_state(self, state):
         """Preprocess state to handle variable dimensions"""
-        if state.ndim == 1:
-            state = np.expand_dims(state, axis=0)
+        # Convert to tensor if not already
+        if not isinstance(state, tf.Tensor):
+            state = tf.convert_to_tensor(state, dtype=tf.float32)
+        
+        # Add batch dimension if needed
+        if len(state.shape) == 1:
+            state = tf.expand_dims(state, axis=0)
         
         # Pad or truncate state to max_state_dim
-        if state.shape[1] < self.max_state_dim:
-            padding = np.zeros((state.shape[0], self.max_state_dim - state.shape[1]))
-            state = np.concatenate([state, padding], axis=1)
-        elif state.shape[1] > self.max_state_dim:
+        current_dim = tf.shape(state)[1]
+        if current_dim < self.max_state_dim:
+            padding = tf.zeros((tf.shape(state)[0], self.max_state_dim - current_dim), dtype=tf.float32)
+            state = tf.concat([state, padding], axis=1)
+        elif current_dim > self.max_state_dim:
             state = state[:, :self.max_state_dim]
         
         return state
@@ -161,6 +168,14 @@ class SyncDRLModel:
         # Get action from policy
         action = self.actor.predict(state)[0]
         
+        # Ensure action has correct shape
+        if action.shape[0] != self.action_dim:
+            if action.shape[0] > self.action_dim:
+                action = action[:self.action_dim]
+            else:
+                padding = np.zeros(self.action_dim - action.shape[0], dtype=np.float32)
+                action = np.concatenate([action, padding])
+        
         # Add exploration noise if not deterministic
         if not deterministic:
             noise = np.random.normal(0, noise_scale, size=self.action_dim)
@@ -171,9 +186,12 @@ class SyncDRLModel:
     @tf.function
     def _train_step(self, states, actions, rewards, next_states, dones):
         """Single training step for actor and critic networks"""
-        # Preprocess states
+        # Preprocess states and ensure correct types
         states = self._preprocess_state(states)
         next_states = self._preprocess_state(next_states)
+        actions = tf.cast(actions, tf.float32)
+        rewards = tf.cast(rewards, tf.float32)
+        dones = tf.cast(dones, tf.bool)
         
         with tf.GradientTape() as actor_tape, tf.GradientTape() as critic_tape_1, tf.GradientTape() as critic_tape_2:
             # Get next actions and log probs from current policy
@@ -187,7 +205,7 @@ class SyncDRLModel:
             target_q = tf.minimum(target_q1, target_q2)
             
             # Compute target value (Bellman equation)
-            q_target = rewards + (1 - dones) * self.gamma * target_q
+            q_target = rewards + tf.cast(1 - tf.cast(dones, tf.float32), tf.float32) * self.gamma * target_q
             
             # Get current Q estimates
             current_q1 = self.critic_1([states, actions])

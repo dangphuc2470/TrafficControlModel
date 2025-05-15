@@ -4,6 +4,15 @@ import random
 import json
 import os
 
+def pad_state(state, max_state_dim=256):
+    state = np.asarray(state)
+    if state.shape[0] < max_state_dim:
+        padding = np.zeros((max_state_dim - state.shape[0],))
+        state = np.concatenate([state, padding])
+    elif state.shape[0] > max_state_dim:
+        state = state[:max_state_dim]
+    return state
+
 class ReplayBuffer:
     """Experience replay buffer for storing and sampling experiences"""
     
@@ -17,31 +26,71 @@ class ReplayBuffer:
         """
         self.buffer = deque(maxlen=capacity)
         self.batch_size = batch_size
+        self.action_dim = None  # Will be set when first action is added
     
     def add(self, state, action, reward, next_state, done):
         """Add experience to buffer"""
-        self.buffer.append((state, action, reward, next_state, done))
+        # Convert action to numpy array if it isn't already
+        action = np.asarray(action, dtype=np.float32)
+        
+        # Set action_dim if not set
+        if self.action_dim is None:
+            self.action_dim = action.shape[0] if action.ndim > 0 else 1
+            print(f"Setting action_dim to {self.action_dim}")
+        
+        # Ensure action has correct shape
+        if action.ndim == 0:
+            action = np.array([action], dtype=np.float32)
+        elif action.shape[0] != self.action_dim:
+            print(f"Warning: Action shape mismatch. Expected {self.action_dim}, got {action.shape}. Reshaping...")
+            if action.shape[0] > self.action_dim:
+                action = action[:self.action_dim]
+            else:
+                padding = np.zeros(self.action_dim - action.shape[0], dtype=np.float32)
+                action = np.concatenate([action, padding])
+        
+        # Convert done to boolean
+        done = bool(done)
+        
+        self.buffer.append((state, action, float(reward), next_state, done))
     
     def sample(self):
         """Sample a batch of experiences"""
-        # Ensure we have enough samples
         if len(self.buffer) < self.batch_size:
-            # If not enough samples, return a smaller batch or None
-            if len(self.buffer) < 2:
-                return None
-            batch_size = len(self.buffer)
-        else:
-            batch_size = self.batch_size
+            return None
+            
+        indices = np.random.choice(len(self.buffer), self.batch_size, replace=False)
+        experiences = [self.buffer[i] for i in indices]
         
-        # Sample random experiences
-        experiences = random.sample(self.buffer, batch_size)
+        # Debug: Print shapes of first few actions
+        print("Action shapes in batch:")
+        for i, exp in enumerate(experiences[:3]):  # Print first 3 actions
+            print(f"Action {i} shape: {exp[1].shape}")
         
-        # Organize batch into separate arrays
-        states = np.array([exp[0] for exp in experiences])
-        actions = np.array([exp[1] for exp in experiences])
-        rewards = np.array([exp[2] for exp in experiences]).reshape(-1, 1)
-        next_states = np.array([exp[3] for exp in experiences])
-        dones = np.array([exp[4] for exp in experiences]).reshape(-1, 1)
+        # Infer max_state_dim from the first state in the batch, or use 256 as default
+        first_state = experiences[0][0]
+        max_state_dim = 256
+        if hasattr(first_state, 'shape') and len(first_state.shape) > 0:
+            max_state_dim = first_state.shape[0] if first_state.shape[0] > 0 else 256
+            
+        states = np.array([pad_state(exp[0], max_state_dim) for exp in experiences], dtype=np.float32)
+        
+        # Ensure all actions have the same shape before creating the array
+        actions = []
+        for exp in experiences:
+            action = exp[1]
+            if action.shape[0] != self.action_dim:
+                if action.shape[0] > self.action_dim:
+                    action = action[:self.action_dim]
+                else:
+                    padding = np.zeros(self.action_dim - action.shape[0], dtype=np.float32)
+                    action = np.concatenate([action, padding])
+            actions.append(action)
+        actions = np.array(actions, dtype=np.float32)
+        
+        rewards = np.array([exp[2] for exp in experiences], dtype=np.float32)
+        next_states = np.array([pad_state(exp[3], max_state_dim) for exp in experiences], dtype=np.float32)
+        dones = np.array([exp[4] for exp in experiences], dtype=np.bool_)
         
         return states, actions, rewards, next_states, dones
     

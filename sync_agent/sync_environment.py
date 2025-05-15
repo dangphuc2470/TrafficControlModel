@@ -90,22 +90,25 @@ class IntersectionSyncEnv(gym.Env):
     
     def _update_spaces(self):
         """Update action and observation spaces based on current intersections"""
-        if self.num_intersections > 1:
-            # Action space: offset adjustments for each pair
-            self.action_space = spaces.Box(
-                low=0.0, high=1.0,
-                shape=((self.num_intersections * (self.num_intersections - 1)) // 2,),
-                dtype=np.float32
-            )
-            
-            # Update observation space
-            features_per_intersection = 4
-            features_per_pair = 3
-            total_features = (self.num_intersections * features_per_intersection + 
-                             (self.num_intersections * (self.num_intersections - 1)) // 2 * features_per_pair)
-            self.observation_space = spaces.Box(
-                low=-np.inf, high=np.inf, shape=(total_features,), dtype=np.float32
-            )
+        # Always use a fixed action space size based on maximum possible intersections
+        max_intersections = 10  # Maximum number of intersections we want to support
+        action_dim = (max_intersections * (max_intersections - 1)) // 2
+        
+        # Action space: offset adjustments for each pair
+        self.action_space = spaces.Box(
+            low=0.0, high=1.0,
+            shape=(action_dim,),
+            dtype=np.float32
+        )
+        
+        # Update observation space
+        features_per_intersection = 4
+        features_per_pair = 3
+        total_features = (max_intersections * features_per_intersection + 
+                         (max_intersections * (max_intersections - 1)) // 2 * features_per_pair)
+        self.observation_space = spaces.Box(
+            low=-np.inf, high=np.inf, shape=(total_features,), dtype=np.float32
+        )
     
     def _calculate_spatial_relationships(self):
         """Calculate distances and travel times between intersections"""
