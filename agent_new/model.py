@@ -3,6 +3,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL']='2'  # kill warning about tensorflow
 import tensorflow as tf
 import numpy as np
 import sys
+import matplotlib.pyplot as plt
 
 from tensorflow import keras
 from tensorflow.keras import layers
@@ -20,6 +21,9 @@ class TrainModel:
         self._learning_rate = learning_rate
         self._model = self._build_model(num_layers, width)
         self._is_sync_training = False  # Flag to track training phase
+        self._rewards = []
+        self._delays = []
+        self._queues = []
 
 
     def _build_model(self, num_layers, width):
@@ -61,29 +65,95 @@ class TrainModel:
         self._model.fit(states, q_sa, epochs=1, verbose=0)
 
 
-    def save_model(self, path, phase='base'):
+    def save_model(self, path, phase='base', model_name=None):
         """
         Save the current model in the folder as h5 file and a model architecture summary as png
+        
+        Args:
+            path: Directory path to save the model
+            phase: Training phase ('base' or 'sync')
+            model_name: Optional custom name for the model file (if not provided, will use trained_model_{phase}.h5)
         """
-        model_name = f'trained_model_{phase}.h5'
-        self._model.save(os.path.join(path, model_name))
-        plot_model(self._model, to_file=os.path.join(path, f'model_structure_{phase}.png'), 
-                  show_shapes=True, show_layer_names=True)
+        if model_name is None:
+            model_name = f'trained_model_{phase}.h5'
+            
+        # Save the model
+        model_path = os.path.join(path, model_name)
+        self._model.save(model_path)
+        print(f"Model saved to: {model_path}")
+        
+        # Try to save the model plot
+        try:
+            plot_path = os.path.join(path, f'model_structure_{phase}.png')
+            plot_model(self._model, to_file=plot_path, 
+                      show_shapes=True, show_layer_names=True)
+            print(f"Model structure plot saved to: {plot_path}")
+        except Exception as e:
+            print(f"Could not generate model plot: {str(e)}")
+            print("To enable model plotting, install graphviz:")
+            print("  - On macOS: brew install graphviz")
+            print("  - On Ubuntu: sudo apt-get install graphviz")
+            print("  - On Windows: Download from https://graphviz.org/download/")
+            
+        # Generate training plots
+        try:
+            # Create plots directory if it doesn't exist
+            plots_dir = os.path.join(path, 'plots')
+            os.makedirs(plots_dir, exist_ok=True)
+            
+            # Plot rewards
+            if hasattr(self, '_rewards'):
+                plt.figure(figsize=(10, 6))
+                plt.plot(self._rewards)
+                plt.title('Training Rewards')
+                plt.xlabel('Episode')
+                plt.ylabel('Reward')
+                plt.savefig(os.path.join(plots_dir, 'rewards.png'))
+                plt.close()
+                print(f"Rewards plot saved to: {os.path.join(plots_dir, 'rewards.png')}")
+            
+            # Plot delays
+            if hasattr(self, '_delays'):
+                plt.figure(figsize=(10, 6))
+                plt.plot(self._delays)
+                plt.title('Average Delay')
+                plt.xlabel('Episode')
+                plt.ylabel('Delay (s)')
+                plt.savefig(os.path.join(plots_dir, 'delays.png'))
+                plt.close()
+                print(f"Delays plot saved to: {os.path.join(plots_dir, 'delays.png')}")
+            
+            # Plot queue lengths
+            if hasattr(self, '_queues'):
+                plt.figure(figsize=(10, 6))
+                plt.plot(self._queues)
+                plt.title('Average Queue Length')
+                plt.xlabel('Episode')
+                plt.ylabel('Queue Length')
+                plt.savefig(os.path.join(plots_dir, 'queues.png'))
+                plt.close()
+                print(f"Queue lengths plot saved to: {os.path.join(plots_dir, 'queues.png')}")
+                
+        except Exception as e:
+            print(f"Could not generate training plots: {str(e)}")
 
 
     def load_base_model(self, path):
         """
         Load the base model for sync-aware training
         """
-        model_path = os.path.join(path, 'trained_model_base.h5')
-        if os.path.isfile(model_path):
-            self._model = load_model(model_path)
-            self._is_sync_training = True
-            # Reduce learning rate for fine-tuning
-            self._learning_rate *= 0.1
-            self.optimizer = tf.keras.optimizers.legacy.Adam(learning_rate=self._learning_rate)
-            self._model.compile(loss=losses.mean_squared_error, optimizer=self.optimizer)
-            return True
+        if os.path.isfile(path):
+            try:
+                self._model = load_model(path)
+                self._is_sync_training = True
+                # Reduce learning rate for fine-tuning
+                self._learning_rate *= 0.1
+                self.optimizer = tf.keras.optimizers.legacy.Adam(learning_rate=self._learning_rate)
+                self._model.compile(loss=losses.mean_squared_error, optimizer=self.optimizer)
+                return True
+            except Exception as e:
+                print(f"Error loading model: {str(e)}")
+                return False
         return False
 
 
@@ -105,6 +175,27 @@ class TrainModel:
     @property
     def is_sync_training(self):
         return self._is_sync_training
+
+
+    def update_metrics(self, reward, delay, queue):
+        """
+        Update training metrics for plotting
+        
+        Args:
+            reward: Current episode reward
+            delay: Current episode average delay
+            queue: Current episode average queue length
+        """
+        if not hasattr(self, '_rewards'):
+            self._rewards = []
+        if not hasattr(self, '_delays'):
+            self._delays = []
+        if not hasattr(self, '_queues'):
+            self._queues = []
+            
+        self._rewards.append(reward)
+        self._delays.append(delay)
+        self._queues.append(queue)
 
 
 class TestModel:

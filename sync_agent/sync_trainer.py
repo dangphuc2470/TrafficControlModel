@@ -5,6 +5,8 @@ import threading
 import numpy as np
 import json
 import logging
+import matplotlib
+matplotlib.use('Agg')  # Use non-interactive backend
 import matplotlib.pyplot as plt
 from datetime import datetime
 from sync_environment import IntersectionSyncEnv

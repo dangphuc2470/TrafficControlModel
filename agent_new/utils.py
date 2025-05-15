@@ -85,14 +85,23 @@ def set_train_path(models_path_name):
 
     dir_content = os.listdir(models_path)
     if dir_content:
-        previous_versions = [int(name.split("_")[1]) for name in dir_content]
-        new_version = str(max(previous_versions) + 1)
+        # Filter for directories that match the pattern 'model_X' where X is a number
+        model_dirs = [name for name in dir_content if name.startswith('model_')]
+        if model_dirs:
+            try:
+                previous_versions = [int(name.split("_")[1]) for name in model_dirs]
+                new_version = str(max(previous_versions) + 1)
+            except ValueError:
+                # If any directory doesn't match the pattern, start from 1
+                new_version = '1'
+        else:
+            new_version = '1'
     else:
         new_version = '1'
 
     data_path = os.path.join(models_path, 'model_'+new_version, '')
     os.makedirs(os.path.dirname(data_path), exist_ok=True)
-    return data_path 
+    return data_path
 
 
 def set_test_path(models_path_name, model_n):
