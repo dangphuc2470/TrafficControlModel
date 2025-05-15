@@ -97,6 +97,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Train traffic light control agent with server connection')
     parser.add_argument('--server-config', type=str, default='server_config.ini',
                        help='Path to the server configuration file (default: server_config.ini)')
+    parser.add_argument('--base-model-path', type=str, default='models/trained_model_base.h5',
+                       help='Path to the base model to load (optional)')
     args = parser.parse_args()
     
     # Load training configuration 
@@ -122,6 +124,7 @@ if __name__ == "__main__":
     else:
         print("Running in standalone mode (no central server)")
 
+    # Create model
     Model = TrainModel(
         config['num_layers'], 
         config['width_layers'], 
@@ -130,6 +133,22 @@ if __name__ == "__main__":
         config['num_states'], 
         config['num_actions']
     )
+
+    # Try to load base model if specified
+    base_model_loaded = False
+    if args.base_model_path:
+        if os.path.exists(args.base_model_path):
+            print(f"\nFound base model at: {args.base_model_path}")
+            if Model.load_base_model(args.base_model_path):
+                base_model_loaded = True
+                print("✓ Successfully loaded base model")
+            else:
+                print("✗ Failed to load base model, starting from scratch")
+        else:
+            print(f"\n✗ Base model not found at: {args.base_model_path}")
+            print("Starting training from scratch")
+    else:
+        print("\nNo base model specified, starting training from scratch")
 
     Memory = Memory(
         config['memory_size_max'], 
@@ -162,6 +181,10 @@ if __name__ == "__main__":
     episode = 0
     timestamp_start = datetime.datetime.now()
     
+    print("\n" + "="*50)
+    print(f"STARTING SERVER TRAINING FOR INTERSECTION {agent_id}")
+    print("="*50)
+    
     while episode < config['total_episodes']:
         print('\n----- Episode', str(episode+1), 'of', str(config['total_episodes']))
         epsilon = 1.0 - (episode / config['total_episodes'])  # set the epsilon for this episode according to epsilon-greedy policy
@@ -169,12 +192,18 @@ if __name__ == "__main__":
         print('Simulation time:', simulation_time, 's - Training time:', training_time, 's - Total:', round(simulation_time+training_time, 1), 's')
         episode += 1
 
-    print("\n----- Training finished -----")
+    print("\n" + "="*50)
+    print(f"SERVER TRAINING FINISHED FOR INTERSECTION {agent_id}")
+    print("="*50)
     print("Starting time:", timestamp_start)
     print("Ending time:", datetime.datetime.now())
     print("Session info saved at:", path)
     
-    Model.save_model(path)
+    # Save model with intersection identifier
+    model_name = f"intersection_{agent_id}_model.h5"
+    model_path = os.path.join(path, model_name)
+    print(f"\nSaving intersection model to: {model_path}")
+    Model.save_model(path, model_name=model_name)
     
     # Final cleanup
     Simulation.cleanup()

@@ -19,6 +19,7 @@ class TrainModel:
         self._batch_size = batch_size
         self._learning_rate = learning_rate
         self._model = self._build_model(num_layers, width)
+        self._is_sync_training = False  # Flag to track training phase
 
 
     def _build_model(self, num_layers, width):
@@ -60,12 +61,30 @@ class TrainModel:
         self._model.fit(states, q_sa, epochs=1, verbose=0)
 
 
-    def save_model(self, path):
+    def save_model(self, path, phase='base'):
         """
         Save the current model in the folder as h5 file and a model architecture summary as png
         """
-        self._model.save(os.path.join(path, 'trained_model.h5'))
-        plot_model(self._model, to_file=os.path.join(path, 'model_structure.png'), show_shapes=True, show_layer_names=True)
+        model_name = f'trained_model_{phase}.h5'
+        self._model.save(os.path.join(path, model_name))
+        plot_model(self._model, to_file=os.path.join(path, f'model_structure_{phase}.png'), 
+                  show_shapes=True, show_layer_names=True)
+
+
+    def load_base_model(self, path):
+        """
+        Load the base model for sync-aware training
+        """
+        model_path = os.path.join(path, 'trained_model_base.h5')
+        if os.path.isfile(model_path):
+            self._model = load_model(model_path)
+            self._is_sync_training = True
+            # Reduce learning rate for fine-tuning
+            self._learning_rate *= 0.1
+            self.optimizer = tf.keras.optimizers.legacy.Adam(learning_rate=self._learning_rate)
+            self._model.compile(loss=losses.mean_squared_error, optimizer=self.optimizer)
+            return True
+        return False
 
 
     @property
@@ -83,23 +102,28 @@ class TrainModel:
         return self._batch_size
 
 
+    @property
+    def is_sync_training(self):
+        return self._is_sync_training
+
+
 class TestModel:
-    def __init__(self, input_dim, model_path):
+    def __init__(self, input_dim, model_path, phase='base'):
         self._input_dim = input_dim
-        self._model = self._load_my_model(model_path)
+        self._model = self._load_my_model(model_path, phase)
 
 
-    def _load_my_model(self, model_folder_path):
+    def _load_my_model(self, model_folder_path, phase):
         """
         Load the model stored in the folder specified by the model number, if it exists
         """
-        model_file_path = os.path.join(model_folder_path, 'trained_model.h5')
+        model_file_path = os.path.join(model_folder_path, f'trained_model_{phase}.h5')
         
         if os.path.isfile(model_file_path):
             loaded_model = load_model(model_file_path)
             return loaded_model
         else:
-            sys.exit("Model number not found")
+            sys.exit(f"Model not found for phase: {phase}")
 
 
     def predict_one(self, state):
