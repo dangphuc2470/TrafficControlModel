@@ -354,6 +354,31 @@ class SyncTrainer:
                        f"Reward: {reward:.2f}, "
                        f"Avg Waiting Time: {info['metrics']['avg_waiting_time']:.2f}")
     
+    def _calculate_distance(self, lat1, lon1, lat2, lon2):
+        """
+        Calculate distance between two points using Haversine formula
+        
+        Args:
+            lat1, lon1: Latitude and longitude of first point
+            lat2, lon2: Latitude and longitude of second point
+            
+        Returns:
+            Distance in kilometers
+        """
+        from math import radians, sin, cos, sqrt, atan2
+        
+        # Convert to radians
+        lat1, lon1, lat2, lon2 = map(radians, [lat1, lon1, lat2, lon2])
+        
+        # Haversine formula
+        dlat = lat2 - lat1
+        dlon = lon2 - lon1
+        a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+        c = 2 * atan2(sqrt(a), sqrt(1-a))
+        distance = 6371 * c  # Earth's radius in km * c
+        
+        return distance
+
     def _format_sync_times(self, offsets):
         """
         Format offsets from the environment to the format expected by the central server
@@ -366,55 +391,120 @@ class SyncTrainer:
         """
         sync_times = {}
         
+        # Log the offsets we received
+        logger.info(f"Received offsets: {offsets}")
+        
         # For each intersection
         for id1 in self.agent_data.keys():
             sync_times[id1] = {}
             
+            # Get coordinates for first intersection
+            agent1_data = self.agent_data[id1]
+            if 'topology' not in agent1_data or 'location' not in agent1_data['topology']:
+                logger.warning(f"No location data for {id1}")
+                continue
+                
+            try:
+                lat1 = float(agent1_data['topology']['location']['latitude'])
+                lon1 = float(agent1_data['topology']['location']['longitude'])
+            except (ValueError, TypeError) as e:
+                logger.error(f"Error converting coordinates for {id1}: {e}")
+                logger.error(f"Raw coordinates: {agent1_data['topology']['location']}")
+                continue
+            
             # For each target intersection
             for id2 in self.agent_data.keys():
                 if id1 != id2:
-                    # Check if we have offset data for this pair
+                    # Get coordinates for second intersection
+                    agent2_data = self.agent_data[id2]
+                    if 'topology' not in agent2_data or 'location' not in agent2_data['topology']:
+                        logger.warning(f"No location data for {id2}")
+                        continue
+                        
+                    try:
+                        lat2 = float(agent2_data['topology']['location']['latitude'])
+                        lon2 = float(agent2_data['topology']['location']['longitude'])
+                    except (ValueError, TypeError) as e:
+                        logger.error(f"Error converting coordinates for {id2}: {e}")
+                        logger.error(f"Raw coordinates: {agent2_data['topology']['location']}")
+                        continue
+                    
+                    # Calculate distance using coordinates
+                    distance_km = self._calculate_distance(lat1, lon1, lat2, lon2)
+                    
+                    # Calculate travel time based on distance and average speed
+                    avg_speed = 40.0  # Default speed in km/h
+                    
+                    # Get speed data from traffic_data
+                    states1 = agent1_data.get('states', [])
+                    states2 = agent2_data.get('states', [])
+                    
+                    if states1 and states2:
+                        latest_state1 = states1[-1]
+                        latest_state2 = states2[-1]
+                        
+                        speeds1 = latest_state1.get('traffic_data', {}).get('avg_speed', {})
+                        speeds2 = latest_state2.get('traffic_data', {}).get('avg_speed', {})
+                        
+                        all_speeds = []
+                        all_speeds.extend(speeds1.values())
+                        all_speeds.extend(speeds2.values())
+                        
+                        if all_speeds:
+                            # Filter out zero speeds and calculate average
+                            valid_speeds = [s for s in all_speeds if s > 0]
+                            if valid_speeds:
+                                avg_speed = sum(valid_speeds) / len(valid_speeds)
+                            else:
+                                logger.warning(f"No valid speeds found for {id1} -> {id2}, using default speed")
+                    
+                    # Ensure minimum speed to prevent division by zero
+                    MIN_SPEED = 5.0  # Minimum speed in km/h
+                    avg_speed = max(avg_speed, MIN_SPEED)
+                    
+                    # Calculate travel time
+                    travel_time_sec = (distance_km / avg_speed) * 3600  # Convert to seconds
+                    
+                    logger.info(f"Processing pair {id1} -> {id2}:")
+                    logger.info(f"  - Coordinates: ({lat1}, {lon1}) -> ({lat2}, {lon2})")
+                    logger.info(f"  - Distance: {distance_km:.2f} km")
+                    logger.info(f"  - Average speed: {avg_speed:.2f} km/h")
+                    logger.info(f"  - Travel time: {travel_time_sec:.2f} sec")
+                    
+                    # Get offset from the environment or calculate default
                     pair = tuple(sorted([id1, id2]))
                     if pair in offsets:
                         offset_sec = offsets[pair]
-                        
-                        # Get basic spatial data
-                        distance_km = self.env.distances.get(pair, 0)
-                        travel_time_sec = self.env.travel_times.get(pair, 0)
-                        
-                        # Get speed data from traffic_data
-                        states1 = self.agent_data[id1].get('states', [])
-                        states2 = self.agent_data[id2].get('states', [])
-                        
-                        avg_speed = 40.0  # Default speed
-                        if states1 and states2:
-                            latest_state1 = states1[-1]
-                            latest_state2 = states2[-1]
-                            
-                            speeds1 = latest_state1.get('traffic_data', {}).get('avg_speed', {})
-                            speeds2 = latest_state2.get('traffic_data', {}).get('avg_speed', {})
-                            
-                            all_speeds = []
-                            all_speeds.extend(speeds1.values())
-                            all_speeds.extend(speeds2.values())
-                            
-                            if all_speeds:
-                                avg_speed = sum(all_speeds) / len(all_speeds)
-                        
-                        # Store in the expected format
-                        sync_times[id1][id2] = {
-                            "distance_km": round(distance_km, 2),
-                            "travel_time_sec": round(travel_time_sec, 2),
-                            "optimal_offset_sec": round(offset_sec, 2),
-                            "cycle_time_sec": self.env.cycle_times.get(id1, 38),
-                            "drl_optimized": True,
-                            "avg_speed_kmh": round(avg_speed, 2)
-                        }
-                        
-                        logger.info(f"Formatted sync time for {id1} -> {id2}: {sync_times[id1][id2]}")
+                        logger.info(f"  - Using offset from environment: {offset_sec}")
+                    else:
+                        # Default offset is travel time modulo cycle time
+                        cycle_time = min(self.env.cycle_times.get(id1, 38), self.env.cycle_times.get(id2, 38))
+                        offset_sec = travel_time_sec % cycle_time
+                        logger.info(f"  - Using default offset: {offset_sec} (travel_time % cycle_time)")
+                    
+                    # Store in the expected format
+                    sync_times[id1][id2] = {
+                        "distance_km": round(distance_km, 2),
+                        "travel_time_sec": round(travel_time_sec, 2),
+                        "optimal_offset_sec": round(offset_sec, 2),
+                        "cycle_time_sec": self.env.cycle_times.get(id1, 38),
+                        "drl_optimized": True,
+                        "avg_speed_kmh": round(avg_speed, 2)
+                    }
+                    
+                    logger.info(f"Formatted sync time for {id1} -> {id2}: {sync_times[id1][id2]}")
         
         if not sync_times:
             logger.warning("No sync times were generated!")
+            # Log the agent data structure to help debug
+            logger.info("Agent data structure:")
+            for agent_id, data in self.agent_data.items():
+                logger.info(f"{agent_id}:")
+                logger.info(f"  - Has topology: {'topology' in data}")
+                if 'topology' in data:
+                    logger.info(f"  - Has location: {'location' in data['topology']}")
+                    if 'location' in data['topology']:
+                        logger.info(f"  - Location: {data['topology']['location']}")
         else:
             logger.info(f"Generated sync times for {len(sync_times)} intersections")
         
