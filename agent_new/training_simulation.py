@@ -356,7 +356,7 @@ class Simulation:
         self._reward_store.append(self._sum_neg_reward)  # how much negative reward in this episode
         self._cumulative_wait_store.append(self._sum_waiting_time)  # total number of seconds waited by cars in this episode
         self._avg_queue_length_store.append(self._sum_queue_length / self._max_steps)  # average number of queued cars per step, in this episode
-        
+
         # Update model metrics for plotting
         self._Model.update_metrics(
             reward=self._sum_neg_reward,

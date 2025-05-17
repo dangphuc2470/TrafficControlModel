@@ -40,7 +40,7 @@ def train_base_model(config, continue_from=None):
     # Set up SUMO
     sumo_cmd = set_sumo(config['gui'], config['sumocfg_file_name'], config['max_steps'])
     path = set_train_path(config['models_path_name'])
-    
+
     # Create model
     Model = TrainModel(
         config['num_layers'], 
@@ -67,12 +67,12 @@ def train_base_model(config, continue_from=None):
         config['memory_size_max'], 
         config['memory_size_min']
     )
-    
+
     TrafficGen = TrafficGenerator(
         config['max_steps'], 
         config['n_cars_generated']
     )
-    
+
     # Create simulation (without server connection)
     simulation = Simulation(
         Model,
@@ -99,14 +99,14 @@ def train_base_model(config, continue_from=None):
         print('Simulation time:', simulation_time, 's - Training time:', training_time, 's - Total:', 
               round(simulation_time+training_time, 1), 's')
         episode += 1
-    
+
     print("\n" + "="*50)
     print("BASE TRAINING FINISHED")
     print("="*50)
     print("Starting time:", timestamp_start)
     print("Ending time:", datetime.datetime.now())
     print("Session info saved at:", path)
-    
+
     # Save base model
     model_path = os.path.join(path, 'trained_model_base.h5')
     print(f"\nSaving base model to: {model_path}")

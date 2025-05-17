@@ -101,7 +101,7 @@ def set_train_path(models_path_name):
 
     data_path = os.path.join(models_path, 'model_'+new_version, '')
     os.makedirs(os.path.dirname(data_path), exist_ok=True)
-    return data_path
+    return data_path 
 
 
 def set_test_path(models_path_name, model_n):

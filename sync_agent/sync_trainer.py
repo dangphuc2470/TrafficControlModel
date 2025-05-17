@@ -302,6 +302,71 @@ class SyncTrainer:
         
         logger.info(f"Model reinitialized - State dim: {state_dim}, Action dim: {action_dim}, Max intersections: {max_intersections}")
     
+    def _calculate_reward(self, agent_data):
+        """
+        Calculate reward based on actual traffic data from agents
+        
+        Args:
+            agent_data: Dictionary containing traffic data for all agents
+            
+        Returns:
+            float: Calculated reward
+        """
+        total_waiting_time = 0
+        total_queue_length = 0
+        total_speed = 0
+        count = 0
+        
+        for agent_id, data in agent_data.items():
+            states = data.get('states', [])
+            if not states:
+                continue
+                
+            latest_state = states[-1]
+            traffic_data = latest_state.get('traffic_data', {})
+            
+            # Get waiting time
+            waiting_time = traffic_data.get('waiting_time', 0)
+            total_waiting_time += waiting_time
+            
+            # Get queue length
+            queue_length = traffic_data.get('queue_length', 0)
+            total_queue_length += queue_length
+            
+            # Get average speed
+            speeds = traffic_data.get('avg_speed', {}).values()
+            if speeds:
+                avg_speed = sum(speeds) / len(speeds)
+                total_speed += avg_speed
+            
+            count += 1
+        
+        if count == 0:
+            return 0.0
+            
+        # Calculate averages
+        avg_waiting_time = total_waiting_time / count
+        avg_queue_length = total_queue_length / count
+        avg_speed = total_speed / count if total_speed > 0 else 0
+        
+        # Calculate reward components
+        waiting_time_reward = -avg_waiting_time / 100.0  # Normalize waiting time
+        queue_reward = -avg_queue_length / 10.0  # Normalize queue length
+        speed_reward = avg_speed / 50.0  # Normalize speed (assuming max speed around 50 km/h)
+        
+        # Combine rewards with weights
+        reward = (0.4 * waiting_time_reward + 
+                 0.3 * queue_reward + 
+                 0.3 * speed_reward)
+        
+        logger.info(f"Reward calculation:")
+        logger.info(f"  - Average waiting time: {avg_waiting_time:.2f}s")
+        logger.info(f"  - Average queue length: {avg_queue_length:.2f}")
+        logger.info(f"  - Average speed: {avg_speed:.2f} km/h")
+        logger.info(f"  - Final reward: {reward:.4f}")
+        
+        return reward
+
     def _generate_sync_data(self):
         """
         Generate synchronization data using the current model
@@ -322,15 +387,23 @@ class SyncTrainer:
         logger.info(f"Generated action: {action}")
         
         # Take a step in the environment
-        next_state, reward, terminated, truncated, info = self.env.step(action)
-        logger.info(f"Environment step completed - Reward: {reward}")
+        next_state, _, terminated, truncated, info = self.env.step(action)
+        
+        # Calculate reward from actual traffic data
+        reward = self._calculate_reward(self.agent_data)
+        logger.info(f"Calculated reward from traffic data: {reward:.4f}")
         
         # Store experience in replay buffer (for training)
         self.replay_buffer.add(state, action, reward, next_state, False)
         
         # Store metrics
         self.episode_rewards.append(reward)
-        self.episode_metrics.append(info['metrics'])
+        self.episode_metrics.append({
+            'avg_waiting_time': sum(d.get('states', [{}])[-1].get('traffic_data', {}).get('waiting_time', 0) 
+                                  for d in self.agent_data.values()) / max(len(self.agent_data), 1),
+            'avg_queue_length': sum(d.get('states', [{}])[-1].get('traffic_data', {}).get('queue_length', 0) 
+                                  for d in self.agent_data.values()) / max(len(self.agent_data), 1)
+        })
         
         # Get the new optimal offsets
         self.sync_times = self._format_sync_times(info['offsets'])
@@ -352,7 +425,7 @@ class SyncTrainer:
         if len(self.episode_rewards) % 10 == 0:
             logger.info(f"Episode {len(self.episode_rewards)} - "
                        f"Reward: {reward:.2f}, "
-                       f"Avg Waiting Time: {info['metrics']['avg_waiting_time']:.2f}")
+                       f"Avg Waiting Time: {self.episode_metrics[-1]['avg_waiting_time']:.2f}")
     
     def _calculate_distance(self, lat1, lon1, lat2, lon2):
         """
