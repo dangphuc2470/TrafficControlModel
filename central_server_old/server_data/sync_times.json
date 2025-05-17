@@ -1,106 +1,106 @@
 {
-  "agent1": {
+  "agent3": {
     "agent2": {
-      "distance_km": 1.44,
-      "travel_time_sec": 413.43,
-      "optimal_offset_sec": 38.0,
+      "distance_km": 1.89,
+      "travel_time_sec": 807.44,
+      "optimal_offset_sec": 9.44,
       "cycle_time_sec": 38,
       "drl_optimized": true,
-      "avg_speed_kmh": 12.5
+      "avg_speed_kmh": 8.43
     },
-    "agent3": {
+    "agent1": {
       "distance_km": 0.63,
-      "travel_time_sec": 179.35,
-      "optimal_offset_sec": 0.0,
+      "travel_time_sec": 268.29,
+      "optimal_offset_sec": 2.29,
       "cycle_time_sec": 38,
       "drl_optimized": true,
-      "avg_speed_kmh": 12.65
+      "avg_speed_kmh": 8.46
     },
     "agent4": {
-      "distance_km": 0.88,
-      "travel_time_sec": 254.12,
+      "distance_km": 0.59,
+      "travel_time_sec": 200.42,
       "optimal_offset_sec": 0.0,
       "cycle_time_sec": 38,
       "drl_optimized": true,
-      "avg_speed_kmh": 12.52
+      "avg_speed_kmh": 10.63
     }
   },
   "agent2": {
+    "agent3": {
+      "distance_km": 1.89,
+      "travel_time_sec": 807.44,
+      "optimal_offset_sec": 9.44,
+      "cycle_time_sec": 38,
+      "drl_optimized": true,
+      "avg_speed_kmh": 8.43
+    },
     "agent1": {
       "distance_km": 1.44,
-      "travel_time_sec": 413.43,
+      "travel_time_sec": 609.04,
+      "optimal_offset_sec": 1.04,
+      "cycle_time_sec": 38,
+      "drl_optimized": true,
+      "avg_speed_kmh": 8.48
+    },
+    "agent4": {
+      "distance_km": 1.63,
+      "travel_time_sec": 458.77,
+      "optimal_offset_sec": 0.0,
+      "cycle_time_sec": 38,
+      "drl_optimized": true,
+      "avg_speed_kmh": 12.82
+    }
+  },
+  "agent1": {
+    "agent3": {
+      "distance_km": 0.63,
+      "travel_time_sec": 268.29,
+      "optimal_offset_sec": 2.29,
+      "cycle_time_sec": 38,
+      "drl_optimized": true,
+      "avg_speed_kmh": 8.46
+    },
+    "agent2": {
+      "distance_km": 1.44,
+      "travel_time_sec": 609.04,
+      "optimal_offset_sec": 1.04,
+      "cycle_time_sec": 38,
+      "drl_optimized": true,
+      "avg_speed_kmh": 8.48
+    },
+    "agent4": {
+      "distance_km": 0.88,
+      "travel_time_sec": 298.52,
       "optimal_offset_sec": 38.0,
       "cycle_time_sec": 38,
       "drl_optimized": true,
-      "avg_speed_kmh": 12.5
-    },
-    "agent3": {
-      "distance_km": 1.89,
-      "travel_time_sec": 531.6,
-      "optimal_offset_sec": 0.0,
-      "cycle_time_sec": 38,
-      "drl_optimized": true,
-      "avg_speed_kmh": 12.8
-    },
-    "agent4": {
-      "distance_km": 1.63,
-      "travel_time_sec": 469.41,
-      "optimal_offset_sec": 0.0,
-      "cycle_time_sec": 38,
-      "drl_optimized": true,
-      "avg_speed_kmh": 12.53
-    }
-  },
-  "agent3": {
-    "agent1": {
-      "distance_km": 0.63,
-      "travel_time_sec": 179.35,
-      "optimal_offset_sec": 0.0,
-      "cycle_time_sec": 38,
-      "drl_optimized": true,
-      "avg_speed_kmh": 12.65
-    },
-    "agent2": {
-      "distance_km": 1.89,
-      "travel_time_sec": 531.6,
-      "optimal_offset_sec": 0.0,
-      "cycle_time_sec": 38,
-      "drl_optimized": true,
-      "avg_speed_kmh": 12.8
-    },
-    "agent4": {
-      "distance_km": 0.59,
-      "travel_time_sec": 168.12,
-      "optimal_offset_sec": 0.0,
-      "cycle_time_sec": 38,
-      "drl_optimized": true,
-      "avg_speed_kmh": 12.67
+      "avg_speed_kmh": 10.65
     }
   },
   "agent4": {
-    "agent1": {
-      "distance_km": 0.88,
-      "travel_time_sec": 254.12,
+    "agent3": {
+      "distance_km": 0.59,
+      "travel_time_sec": 200.42,
       "optimal_offset_sec": 0.0,
       "cycle_time_sec": 38,
       "drl_optimized": true,
-      "avg_speed_kmh": 12.52
+      "avg_speed_kmh": 10.63
     },
     "agent2": {
       "distance_km": 1.63,
-      "travel_time_sec": 469.41,
+      "travel_time_sec": 458.77,
       "optimal_offset_sec": 0.0,
       "cycle_time_sec": 38,
       "drl_optimized": true,
-      "avg_speed_kmh": 12.53
+      "avg_speed_kmh": 12.82
     },
-    "agent3": {
-      "distance_km": 0.59,
-      "travel_time_sec": 168.12,
-      "optimal_offset_sec": 0.0,
+    "agent1": {
+      "distance_km": 0.88,
+      "travel_time_sec": 298.52,
+      "optimal_offset_sec": 38.0,
       "cycle_time_sec": 38,
       "drl_optimized": true,
-      "avg_speed_kmh": 12.67
+      "avg_speed_kmh": 10.65
     }
   }
 }

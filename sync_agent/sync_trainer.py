@@ -398,11 +398,28 @@ class SyncTrainer:
         
         # Store metrics
         self.episode_rewards.append(reward)
+        
+        # Safely calculate metrics with proper checks for empty states
+        total_waiting_time = 0
+        total_queue_length = 0
+        valid_agents = 0
+        
+        for agent_data in self.agent_data.values():
+            states = agent_data.get('states', [])
+            if states:  # Only process if there are states
+                latest_state = states[-1]
+                traffic_data = latest_state.get('traffic_data', {})
+                total_waiting_time += traffic_data.get('waiting_time', 0)
+                total_queue_length += traffic_data.get('queue_length', 0)
+                valid_agents += 1
+        
+        # Calculate averages only if we have valid data
+        avg_waiting_time = total_waiting_time / max(valid_agents, 1)
+        avg_queue_length = total_queue_length / max(valid_agents, 1)
+        
         self.episode_metrics.append({
-            'avg_waiting_time': sum(d.get('states', [{}])[-1].get('traffic_data', {}).get('waiting_time', 0) 
-                                  for d in self.agent_data.values()) / max(len(self.agent_data), 1),
-            'avg_queue_length': sum(d.get('states', [{}])[-1].get('traffic_data', {}).get('queue_length', 0) 
-                                  for d in self.agent_data.values()) / max(len(self.agent_data), 1)
+            'avg_waiting_time': avg_waiting_time,
+            'avg_queue_length': avg_queue_length
         })
         
         # Get the new optimal offsets

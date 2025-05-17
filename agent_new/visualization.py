@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 import os
+import numpy as np
 
 class Visualization:
     def __init__(self, path, dpi):
@@ -11,12 +12,24 @@ class Visualization:
         """
         Produce a plot of performance of the agent over the session and save the relative data to txt
         """
-        min_val = min(data)
-        max_val = max(data)
+        # Convert to numpy array for easier filtering
+        data_array = np.array(data)
+        
+        # Filter out zero values
+        non_zero_mask = data_array != 0
+        filtered_data = data_array[non_zero_mask]
+        
+        # If all values are zero, use original data
+        if len(filtered_data) == 0:
+            filtered_data = data_array
+        
+        min_val = min(filtered_data)
+        max_val = max(filtered_data)
 
         plt.rcParams.update({'font.size': 24})  # set bigger font size
 
-        plt.plot(data)
+        # Plot only non-zero values
+        plt.plot(np.where(non_zero_mask)[0], filtered_data)
         plt.ylabel(ylabel)
         plt.xlabel(xlabel)
         plt.margins(0)
