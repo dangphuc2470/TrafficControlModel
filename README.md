@@ -59,11 +59,12 @@ The project directory is organized as follows:
     ```
 
 ## Running the System
-Note that I am using **Python 3.13.3** for **central server** and **Python 3.8.20** for Intersection and Sync agent
+Note that I am using **Python 3.13.3** for **Central server** and **Python 3.8.20** for **Intersection and Sync agent**
 1.  **Start the Central Server**
 
     ```bash
-    python ./central_server/central_server.py
+    cd /central_server
+    python central_server.py
     ```
 
     The central server will start on `http://localhost:5000`.
@@ -84,7 +85,18 @@ Note that I am using **Python 3.13.3** for **central server** and **Python 3.8.2
     python3.8 train_with_server.py --server-config server_config_2.ini
     ```
 
-3.  **View the Dashboard**
+3**Run the Sync Agent Training**
+
+    To run the sync agent, use the following command:
+
+    ```bash
+    cd /sync_agent
+    python3.8 sync_main.py
+    ```
+
+    This will start the sync agent which coordinates with the central server.
+
+4**View the Dashboard**
 
     Open your browser and navigate to:
 
@@ -118,6 +130,7 @@ The central server dashboard provides real-time updates on agent performance and
 To test an intersection agent with the central server:
 
 ```bash
+cd /intersection_agent
 # Test the base model
 python3.8 test_with_server.py --server-config server_config_1.ini --phase base
 
@@ -130,13 +143,24 @@ or just
 python3.8 test_with_server.py --server-config server_config_1.ini 
 ```
 
+# Starting the Sync Agent
+```bash
+cd /sync_agent
+python3.8 sync_test.py
+```
+
 The script will:
 1. Read the server configuration to get the agent ID
 2. Find the latest model for that agent:
    - For sync-aware models (default): `models/model_XXX/intersection_agentY_model.h5`
    - For base models: `models/model_XXX/trained_model_base.h5`
 3. Connect to the central server and run the simulation
-4. Display results including:
+4. Send the intersection state to the server
+5. Sync agent will receive the state, calculate the action, and send it back to the intersection agent
+6. The intersection agent will calculate it decision based on the time offset received and from it's experience
+7. Intersection agent choose the action control the traffic light
+8. Continue send the state to the server and receive the action from sync agent
+9. Display results including:
    - Average reward
    - Total reward
    - Average queue length
@@ -155,17 +179,6 @@ The script will:
    - Does not require sync_agent
    - Example: `models/model_96/trained_model_base.h5`
 
-### Running with Sync Agent
-
-To use sync-aware models, you need to run the sync agent:
-
-```bash
-# Start the sync agent
-python3.8 sync_agent/sync_agent.py --server-config server_config_1.ini
-
-# Then run the intersection agent with sync-aware model
-python3.8 test_with_server.py --server-config server_config_1.ini
-```
 
 ### Server Configuration
 
