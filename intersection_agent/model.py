@@ -199,23 +199,43 @@ class TrainModel:
 
 
 class TestModel:
-    def __init__(self, input_dim, model_path, phase='base'):
+    def __init__(self, input_dim, model_path, phase=None):
         self._input_dim = input_dim
         self._model = self._load_my_model(model_path, phase)
 
-
     def _load_my_model(self, model_folder_path, phase):
         """
-        Load the model stored in the folder specified by the model number, if it exists
+        Load the model stored in the folder specified by the model number
+        Args:
+            model_folder_path: Path to the model folder
+            phase: If None, load non-phase model. If specified, load phase-based model
         """
-        model_file_path = os.path.join(model_folder_path, f'trained_model_{phase}.h5')
-        
-        if os.path.isfile(model_file_path):
-            loaded_model = load_model(model_file_path)
-            return loaded_model
+        if phase is None:
+            # Try to load non-phase model first
+            model_file_path = model_folder_path
+            if os.path.isfile(model_file_path):
+                return load_model(model_file_path)
         else:
-            sys.exit(f"Model not found for phase: {phase}")
-
+            # Try to load phase-based model
+            model_file_path = os.path.join(model_folder_path, f'trained_model_{phase}.h5')
+            if os.path.isfile(model_file_path):
+                return load_model(model_file_path)
+        
+        # If we get here, try the other approach
+        if phase is None:
+            # If non-phase failed, try phase-based
+            model_file_path = os.path.join(model_folder_path, 'trained_model_base.h5')
+            if os.path.isfile(model_file_path):
+                print("Warning: Using phase-based model as fallback")
+                return load_model(model_file_path)
+        else:
+            # If phase-based failed, try non-phase
+            if os.path.isfile(model_folder_path):
+                print("Warning: Using non-phase model as fallback")
+                return load_model(model_folder_path)
+        
+        # If all attempts fail
+        sys.exit(f"Model not found at {model_folder_path}")
 
     def predict_one(self, state):
         """
@@ -223,7 +243,6 @@ class TestModel:
         """
         state = np.reshape(state, [1, self._input_dim])
         return self._model.predict(state)
-
 
     @property
     def input_dim(self):

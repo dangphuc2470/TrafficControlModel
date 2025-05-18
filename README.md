@@ -32,7 +32,7 @@ This project is adapted from the work by Andrea Vidali on [Deep Q-Learning for T
 
 The project directory is organized as follows:
 
-- `agent_new/`: Contains the RL agent implementation.
+- `intersection_agent/`: Contains the RL agent implementation.
 - `central_server/`: Central server for coordination and visualization.
 
 *(Dashboard-related files are listed below)*
@@ -73,7 +73,7 @@ The project directory is organized as follows:
     To start training with a specific configuration:
 
     ```bash
-    cd /agent_new
+    cd /intersection_agent
 
     python train_with_server.py --server-config server_config_1.ini
     ```

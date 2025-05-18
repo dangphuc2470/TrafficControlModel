@@ -10,6 +10,7 @@ import socket
 import timeit
 import traci
 import argparse
+import glob
 
 from testing_simulation import Simulation
 from generator import TrafficGenerator
@@ -23,7 +24,43 @@ if 'SUMO_HOME' in os.environ:
 else:
     sys.exit("Please declare the environment variable 'SUMO_HOME'")
 
-def read_server_config(config_file):
+def get_latest_model_for_agent(models_dir, agent_id, phase=None):
+    """
+    Find the latest model for a specific agent
+    Args:
+        models_dir: Directory containing model folders
+        agent_id: Agent ID (e.g., 'agent1')
+        phase: If specified, look for phase-based model (e.g., 'base', 'sync')
+    Returns:
+        tuple: (model_number, model_path) or (None, None) if no model found
+    """
+    # Extract agent number from agent_id (e.g., 'agent1' -> '1')
+    agent_num = agent_id.replace('agent', '')
+    
+    # Find all model directories
+    model_dirs = glob.glob(os.path.join(models_dir, 'model_*'))
+    if not model_dirs:
+        return None, None
+    
+    # Sort directories by model number
+    model_dirs.sort(key=lambda x: int(x.split('_')[-1]), reverse=True)
+    
+    # Look for the latest model that has a file for this agent
+    for model_dir in model_dirs:
+        model_num = int(model_dir.split('_')[-1])
+        if phase:
+            # For phase-based models, look for trained_model_{phase}.h5
+            model_file = os.path.join(model_dir, f'trained_model_{phase}.h5')
+        else:
+            # For non-phase models, look for intersection_agent{num}_model.h5
+            model_file = os.path.join(model_dir, f'intersection_agent{agent_num}_model.h5')
+            
+        if os.path.exists(model_file):
+            return model_num, model_file
+    
+    return None, None
+
+def read_server_config(config_file='server_config_2.ini'):
     if not os.path.exists(config_file):
         return None, None, None, None
     config = configparser.ConfigParser()
@@ -218,14 +255,46 @@ class TestingSimulationWithServer(Simulation):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--server-config', type=str, default='server_config_1.ini')
+    parser.add_argument('--phase', type=str, help='Phase to use for model loading (e.g., "base", "sync"). If not specified, will use non-phase model.')
     args = parser.parse_args()
+    
     # Configure the test
     config = import_test_configuration(config_file='testing_settings.ini')
     sumo_cmd = set_sumo(config['gui'], config['sumocfg_file_name'], config['max_steps'])
-    model_path, plot_path = set_test_path(config['models_path_name'], config['model_to_test'])
-
-    # Read server configuration
+    
+    # Read server configuration first to get agent ID
     server_url, agent_id, mapping_config, env_file_path = read_server_config(args.server_config)
+    
+    # Find the latest model for this agent
+    models_dir = config['models_path_name']
+    latest_model_num, model_path = get_latest_model_for_agent(models_dir, agent_id, args.phase)
+    
+    if latest_model_num is None:
+        print(f"Error: No model found for agent {agent_id}")
+        if args.phase:
+            print(f"Tried to find phase-based model: trained_model_{args.phase}.h5")
+        else:
+            print(f"Tried to find non-phase model: intersection_agent{agent_id.replace('agent', '')}_model.h5")
+        sys.exit(1)
+    
+    # Update config with the latest model number
+    config['model_to_test'] = latest_model_num
+    
+    # Get plot path
+    plot_path = os.path.join(models_dir, f'plots_{latest_model_num}')
+
+    # Print model information
+    print("\n=== Model Information ===")
+    print(f"Agent ID: {agent_id}")
+    print(f"Using model: {latest_model_num}")
+    print(f"Model path: {model_path}")
+    print(f"Plot path: {plot_path}")
+    if args.phase:
+        print(f"Using phase: {args.phase}")
+    else:
+        print("Using non-phase model")
+    print("=======================\n")
+
     if server_url:
         print(f"Connecting to central server at {server_url} as agent {agent_id}")
     else:
@@ -234,7 +303,8 @@ if __name__ == "__main__":
     # Create model and traffic generator
     Model = TestModel(
         config['num_states'],
-        model_path
+        model_path,
+        phase=args.phase
     )
 
     TrafficGen = TrafficGenerator(
