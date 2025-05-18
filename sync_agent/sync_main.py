@@ -12,10 +12,10 @@ def main():
     parser.add_argument('--model-dir', type=str, default='sync_models',
                         help='Directory to save/load models')
     parser.add_argument('--data-path', type=str, 
-                        default='../central_server_old/server_data/agent_data.json',
+                        default='../central_server/server_data/agent_data.json',
                         help='Path to agent data JSON from central server')
     parser.add_argument('--output-path', type=str,
-                        default='../central_server_old/server_data/sync_times.json',
+                        default='../central_server/server_data/sync_times.json',
                         help='Path to save synchronization data')
     parser.add_argument('--update-interval', type=int, default=60,
                         help='Seconds between updates from agent data')

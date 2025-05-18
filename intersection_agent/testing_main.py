@@ -6,12 +6,13 @@ from shutil import copyfile
 import configparser
 import socket
 import argparse
+import sys
 
 from testing_simulation import Simulation
 from generator import TrafficGenerator
 from model import TestModel
 from visualization import Visualization
-from utils import import_test_configuration, set_sumo, set_test_path
+from utils import import_test_configuration, set_sumo, set_test_path, get_latest_model_for_agent
 
 
 def read_server_config(config_file='server_config_1.ini'):
@@ -76,11 +77,24 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     config = import_test_configuration(config_file='testing_settings.ini')
+    
+    # Read server configuration first to get agent_id
+    server_url, agent_id, mapping_config, env_file_path = read_server_config(args.server_config)
+    
+    # Extract agent number from agent_id (e.g., "agent1" -> "1")
+    agent_number = agent_id.replace('agent', '') if agent_id.startswith('agent') else agent_id
+    
+    # Get the latest model for this specific agent
+    latest_model = get_latest_model_for_agent(config['models_path_name'], agent_number)
+    if latest_model is None:
+        sys.exit(f"No models found for agent {agent_number}")
+    
+    print(f"\nUsing latest model for agent {agent_number}: model_{latest_model}")
+    config['model_to_test'] = latest_model
+    
     sumo_cmd = set_sumo(config['gui'], config['sumocfg_file_name'], config['max_steps'])
     model_path, plot_path = set_test_path(config['models_path_name'], config['model_to_test'])
 
-    # Read server configuration using the argument
-    server_url, agent_id, mapping_config, env_file_path = read_server_config(args.server_config)
     if server_url:
         print(f"Connecting to central server at {server_url} as agent {agent_id}")
     else:

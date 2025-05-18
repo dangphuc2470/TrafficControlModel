@@ -37,8 +37,8 @@ class SyncTrainer:
     def __init__(
         self,
         model_dir="sync_models",
-        data_path="../central_server_old/server_data/agent_data.json",
-        output_path="../central_server_old/server_data/sync_times.json",
+        data_path="../central_server/server_data/agent_data.json",
+        output_path="../central_server/server_data/sync_times.json",
         update_interval=60,  # seconds between updates
         train_interval=30,   # seconds between training batches
         save_interval=300,   # seconds between model saves (5 minutes)

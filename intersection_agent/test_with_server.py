@@ -23,7 +23,7 @@ if 'SUMO_HOME' in os.environ:
 else:
     sys.exit("Please declare the environment variable 'SUMO_HOME'")
 
-def read_server_config(config_file='server_config_2.ini'):
+def read_server_config(config_file):
     if not os.path.exists(config_file):
         return None, None, None, None
     config = configparser.ConfigParser()
@@ -225,7 +225,7 @@ if __name__ == "__main__":
     model_path, plot_path = set_test_path(config['models_path_name'], config['model_to_test'])
 
     # Read server configuration
-    server_url, agent_id, location_data, map_config = read_server_config(args.server_config)
+    server_url, agent_id, mapping_config, env_file_path = read_server_config(args.server_config)
     if server_url:
         print(f"Connecting to central server at {server_url} as agent {agent_id}")
     else:
@@ -254,8 +254,8 @@ if __name__ == "__main__":
         config['num_actions'],
         server_url,
         agent_id,
-        map_config,
-        config.get('env_file_path')
+        mapping_config,
+        env_file_path
     )
     
     print("----- Testing episode")

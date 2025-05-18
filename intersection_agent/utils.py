@@ -116,3 +116,38 @@ def set_test_path(models_path_name, model_n):
         return model_folder_path, plot_path
     else: 
         sys.exit('The model number specified does not exist in the models folder')
+
+
+def get_latest_model_for_agent(models_path_name, agent_id):
+    """
+    Get the latest model number for a specific agent
+    
+    Args:
+        models_path_name: Name of the models directory
+        agent_id: ID of the agent (e.g., '1' for agent 1)
+        
+    Returns:
+        int: Latest model number for the agent
+    """
+    models_path = os.path.join(os.getcwd(), models_path_name)
+    if not os.path.exists(models_path):
+        return None
+        
+    # Get all model directories
+    model_dirs = [d for d in os.listdir(models_path) if d.startswith('model_')]
+    if not model_dirs:
+        return None
+        
+    # Extract model numbers and find the latest
+    model_numbers = []
+    for d in model_dirs:
+        try:
+            # Check if this model directory contains a model for our agent
+            model_path = os.path.join(models_path, d)
+            if os.path.exists(os.path.join(model_path, f'intersection_agent{agent_id}_model.h5')):
+                num = int(d.split('_')[1])
+                model_numbers.append(num)
+        except (ValueError, IndexError):
+            continue
+            
+    return max(model_numbers) if model_numbers else None
