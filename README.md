@@ -59,7 +59,7 @@ The project directory is organized as follows:
     ```
 
 ## Running the System
-
+Note that I am using **Python 3.13.3** for **central server** and **Python 3.8.20** for Intersection and Sync agent
 1.  **Start the Central Server**
 
     ```bash
@@ -75,13 +75,13 @@ The project directory is organized as follows:
     ```bash
     cd /intersection_agent
 
-    python train_with_server.py --server-config server_config_1.ini
+    python3.8 train_with_server.py --server-config server_config_1.ini
     ```
 
     You can run multiple agents with different configurations by using different config files:
 
     ```bash
-    python train_with_server.py --server-config server_config_2.ini
+    python3.8 train_with_server.py --server-config server_config_2.ini
     ```
 
 3.  **View the Dashboard**
@@ -110,14 +110,137 @@ During training, you can monitor:
 
 The central server dashboard provides real-time updates on agent performance and network-wide traffic patterns.
 
-## Extending the System
 
-To add new intersections:
+## Testing
 
-1.  Create a new SUMO network configuration.
-2.  Add a new server configuration file.
-3.  Run the agent with the new configuration.
+### Running Tests with Server
 
-## License
+To test an intersection agent with the central server:
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+```bash
+# Test the base model
+python3.8 test_with_server.py --server-config server_config_1.ini --phase base
+
+
+# Test with sync-aware model
+python3.8 test_with_server.py --server-config server_config_1.ini --phase sync
+```
+or just 
+```bash
+python3.8 test_with_server.py --server-config server_config_1.ini 
+```
+
+The script will:
+1. Read the server configuration to get the agent ID
+2. Find the latest model for that agent:
+   - For sync-aware models (default): `models/model_XXX/intersection_agentY_model.h5`
+   - For base models: `models/model_XXX/trained_model_base.h5`
+3. Connect to the central server and run the simulation
+4. Display results including:
+   - Average reward
+   - Total reward
+   - Average queue length
+
+### Model Types
+
+1. **Sync-aware Models** (Default)
+   - Located in: `models/model_XXX/intersection_agentY_model.h5`
+   - Used by default (no phase specified)
+   - Requires sync_agent to be running
+   - Example: `models/model_142/intersection_agent1_model.h5`
+
+2. **Base Models**
+   - Located in: `models/model_XXX/trained_model_base.h5`
+   - Used when `--phase base` is specified
+   - Does not require sync_agent
+   - Example: `models/model_96/trained_model_base.h5`
+
+### Running with Sync Agent
+
+To use sync-aware models, you need to run the sync agent:
+
+```bash
+# Start the sync agent
+python3.8 sync_agent/sync_agent.py --server-config server_config_1.ini
+
+# Then run the intersection agent with sync-aware model
+python3.8 test_with_server.py --server-config server_config_1.ini
+```
+
+### Server Configuration
+
+The server configuration file (e.g., `server_config_1.ini`) should contain:
+```ini
+[server]
+enabled = true
+server_url = http://127.0.0.1:5000
+agent_id = agent1
+
+[location]
+latitude = 10.123
+longitude = 106.456
+intersection_name = Intersection 1
+orientation = 0
+
+[map]
+send_topology = true
+environment_file = intersection/environment.net.xml
+connection_distance = 1.5
+connected_to = agent2,agent3
+
+[visualization]
+marker_color = green
+marker_icon = traffic-light
+```
+
+### Testing Settings
+
+The testing settings are configured in `testing_settings.ini`:
+```ini
+[simulation]
+gui = True
+max_steps = 5400
+n_cars_generated = 1000
+episode_seed = 10000
+yellow_duration = 4
+green_duration = 10
+
+[agent]
+num_states = 80
+num_actions = 4
+
+[dir]
+models_path_name = models
+sumocfg_file_name = sumo_config.sumocfg
+model_to_test = 96
+```
+
+### Output
+
+The test will display:
+```
+=== Model Information ===
+Agent ID: agent1
+Using model: 142
+Model path: models/model_142/intersection_agent1_model.h5
+Plot path: models/plots_142
+Using sync-aware model (requires sync_agent)
+=======================
+
+----- Testing episode
+Simulating...
+Simulation time: 123.4 s
+
+----- Results -----
+Average reward: 123.45
+Total reward: 1234.56
+Average queue length: 5.67
+
+End of testing
+```
+
+### Notes
+1. Make sure the central server is running before starting the test
+2. The agent ID in the server config must match the model files
+3. For sync-aware models, ensure the sync_agent is running
+4. The test will automatically find the latest model for the specified agent and type

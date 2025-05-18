@@ -289,10 +289,10 @@ if __name__ == "__main__":
     print(f"Using model: {latest_model_num}")
     print(f"Model path: {model_path}")
     print(f"Plot path: {plot_path}")
-    if args.phase:
-        print(f"Using phase: {args.phase}")
+    if args.phase == 'base':
+        print("Using base model")
     else:
-        print("Using non-phase model")
+        print("Using sync-aware model (requires sync_agent)")
     print("=======================\n")
 
     if server_url:
