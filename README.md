@@ -58,7 +58,7 @@ The project directory is organized as follows:
     pip install tensorflow flask numpy matplotlib folium
     ```
 
-## Running the System
+## Training
 Note that I am using **Python 3.13.3** for **Central server** and **Python 3.8.20** for **Intersection and Sync agent**
 1.  **Start the Central Server**
 
@@ -85,7 +85,7 @@ Note that I am using **Python 3.13.3** for **Central server** and **Python 3.8.2
     python3.8 train_with_server.py --server-config server_config_2.ini
     ```
 
-3**Run the Sync Agent Training**
+3. **Run the Sync Agent Training**
 
     To run the sync agent, use the following command:
 
@@ -96,7 +96,7 @@ Note that I am using **Python 3.13.3** for **Central server** and **Python 3.8.2
 
     This will start the sync agent which coordinates with the central server.
 
-4**View the Dashboard**
+4. **View the Dashboard**
 
     Open your browser and navigate to:
 
@@ -125,17 +125,25 @@ The central server dashboard provides real-time updates on agent performance and
 
 ## Testing
 
-### Running Tests with Server
+### Running Tests for just one intersection
+```bash
+cd /intersection_agent
+python3.8 test_with_server.py --server-config server_config_1.ini --phase base
+```
+
+### Running Tests with multiple intersections
 
 To test an intersection agent with the central server:
 
+1. **Start the Central Server**
+```bash
+cd /central_server
+python central_server.py
+```
+
+2. **Start Intersection Agent**
 ```bash
 cd /intersection_agent
-# Test the base model
-python3.8 test_with_server.py --server-config server_config_1.ini --phase base
-
-
-# Test with sync-aware model
 python3.8 test_with_server.py --server-config server_config_1.ini --phase sync
 ```
 or just 
@@ -143,7 +151,7 @@ or just
 python3.8 test_with_server.py --server-config server_config_1.ini 
 ```
 
-# Starting the Sync Agent
+3. **Start the Sync Agent**
 ```bash
 cd /sync_agent
 python3.8 sync_test.py
