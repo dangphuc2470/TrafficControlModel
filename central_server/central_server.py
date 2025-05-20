@@ -14,9 +14,18 @@ import xml.etree.ElementTree as ET
 from collections import deque
 import matplotlib
 matplotlib.use('Agg')  # Use non-interactive backend
+from firebase_service import FirebaseService
 
 app = Flask(__name__)
 CORS(app)  # Cho phép truy cập từ Flutter Web
+
+# Initialize Firebase service
+firebase = FirebaseService()
+
+# Global variables
+active_agents = {}
+agent_configs = {}
+agent_metrics = {}
 
 # Data storage
 agent_data = {}
@@ -374,100 +383,86 @@ def serve_static(filename):
     """Serve static files"""
     return send_from_directory('static', filename)
 
-# @app.route('/api/update', methods=['POST'])
-# def update_data():
-#     """Endpoint for agents to send their data"""
-#     try:
-#         # Todo: remove this full update log
-#         log_event(f"Received full update from agent: {json.dumps(request.json)}")
-#         data = request.json
-#         agent_id = data.get('agent_id')
-        
-#         if not agent_id:
-#             log_event("ERROR: Received update without agent_id")
-#             return jsonify({'status': 'error', 'message': 'Missing agent_id'}), 400
-        
-#         # Store the update time
-#         last_update[agent_id] = time.time()
-        
-#         # Initialize agent data if it doesn't exist
-#         if (agent_id not in agent_data):
-#             agent_data[agent_id] = {}
-#             log_event(f"New agent registered: {agent_id}")
-        
-#         # Special handling for topology data - only update it once
-#         topology_updated = False
-#         if 'topology' in data and 'topology' not in agent_data[agent_id]:
-#             log_event(f"Received topology data from Agent {agent_id}")
-#             # Parse and store the topology data
-#             agent_data[agent_id]['topology'] = data['topology']
-#             topology_updated = True
-#             # Generate an updated map now
-#             try:
-#                 generate_intersection_map()
-#             except Exception as e:
-#                 log_event(f"Error generating map after topology update: {e}")
-        
-#         # Log main data points
-#         log_message = f"Update from {agent_id}"
-#         if 'last_episode' in data:
-#             log_message += f", Episode: {data['last_episode']}"
-#         if 'status' in data:
-#             log_message += f", Status: {data['status']}"
-#         if 'rewards' in data and data['rewards']:
-#             log_message += f", Reward: {data['rewards'][-1]:.2f}" if data['rewards'] else ""
-#         log_event(log_message)
-        
-#         # Update other agent data
-#         for key, value in data.items():
-#             if key != 'agent_id' and key != 'topology':
-#                 agent_data[agent_id][key] = value
-        
-#         # If topology was updated, recalculate intersection sync times
-#         if topology_updated:
-#             sync_times = calculate_intersection_sync_times()
-#             # Print sync times information to console for reference
-#             log_event("Updated intersection synchronization times:")
-#             for id1, targets in sync_times.items():
-#                 for id2, sync_data in targets.items():
-#                     log_event(f"  {id1} → {id2}: Distance={sync_data['distance_km']}km, " +
-#                              f"Travel Time={sync_data['travel_time_sec']}s, " +
-#                              f"Optimal Offset={sync_data['optimal_offset_sec']}s")
-        
-#         return jsonify({'status': 'success'}), 200
-    
-#     except Exception as e:
-#         log_event(f"ERROR in update_data: {str(e)}")
-#         return jsonify({'status': 'error', 'message': str(e)}), 500
-
 @app.route('/api/status', methods=['GET'])
 def get_status():
-    """Endpoint to check the status of all agents"""
-    current_time = time.time()
-    status = {
-        'agents': {},
-        'total_agents': len(agent_data),
-        'online_agents': 0
-    }
-    
-    for agent_id in agent_data:
-        is_online = agent_id in last_update and (current_time - last_update[agent_id] <= TIMEOUT_THRESHOLD)
-        status['agents'][agent_id] = {
-            'online': is_online,
-            'last_update': last_update.get(agent_id, 0),
-            'data_points': sum(len(value) if isinstance(value, list) else 1 for value in agent_data[agent_id].values()),
-            'last_episode': agent_data[agent_id].get('last_episode', -1),
-            'status': agent_data[agent_id].get('status', 'unknown')
-        }
-        if is_online:
-            status['online_agents'] += 1
-    
+    """Get overall system status"""
+    status = firebase.get_system_status()
     return jsonify(status)
 
 @app.route('/api/data', methods=['GET'])
 def get_data():
-    """Endpoint to retrieve all collected data"""
-    return jsonify(agent_data)
+    """Get all agent data"""
+    agents = firebase.get_all_agents()
+    return jsonify(agents)
+
+@app.route('/api/agent/<agent_id>', methods=['GET'])
+def get_agent(agent_id):
+    """Get specific agent data"""
+    agent_data = firebase.get_agent_data(agent_id)
+    if agent_data:
+        return jsonify(agent_data)
+    return jsonify({'error': 'Agent not found'}), 404
+
+@app.route('/api/agent/<agent_id>/config', methods=['POST'])
+def update_agent_config(agent_id):
+    """Update agent configuration"""
+    config = request.json
+    firebase.update_agent_config(agent_id, config)
+    return jsonify({'status': 'success'})
+
+@app.route('/api/agent/<agent_id>/metrics', methods=['POST'])
+def update_agent_metrics(agent_id):
+    """Update agent metrics"""
+    metrics = request.json
+    firebase.update_agent_metrics(agent_id, metrics)
+    return jsonify({'status': 'success'})
+
+@app.route('/api/agent/<agent_id>/status', methods=['POST'])
+def update_agent_status(agent_id):
+    """Update agent status"""
+    status = request.json.get('status')
+    firebase.update_agent_status(agent_id, status)
+    return jsonify({'status': 'success'})
+
+@app.route('/api/agent/<agent_id>/location', methods=['POST'])
+def update_agent_location(agent_id):
+    """Update agent location"""
+    data = request.json
+    firebase.update_agent_location(
+        agent_id,
+        data.get('latitude'),
+        data.get('longitude')
+    )
+    return jsonify({'status': 'success'})
+
+@app.route('/api/agent/<agent_id>/performance', methods=['POST'])
+def update_agent_performance(agent_id):
+    """Update agent performance metrics"""
+    performance_data = request.json
+    firebase.update_agent_performance(agent_id, performance_data)
+    return jsonify({'status': 'success'})
+
+@app.route('/api/agent/<agent_id>/log', methods=['POST'])
+def add_agent_log(agent_id):
+    """Add agent log entry"""
+    data = request.json
+    firebase.add_agent_log(
+        agent_id,
+        data.get('message'),
+        data.get('level', 'INFO')
+    )
+    return jsonify({'status': 'success'})
+
+def update_system_status():
+    """Periodically update system status"""
+    while True:
+        agents = firebase.get_all_agents()
+        if agents:
+            total_agents = len(agents)
+            online_agents = sum(1 for agent in agents.values() 
+                              if agent.get('status') == 'online')
+            firebase.update_system_status(total_agents, online_agents)
+        time.sleep(5)
 
 @app.route('/api/latest_charts', methods=['GET'])
 def get_latest_charts():
@@ -521,6 +516,7 @@ def receive_updates():
                 'queue_lengths': [],
                 'waiting_times': [],
                 'status': 'unknown',
+                'online': True,  # New agents are online by default
                 'last_episode': -1
             }
             log_event(f"New agent registered: {agent_id}")
@@ -550,12 +546,15 @@ def receive_updates():
         # Update scalar values
         if 'status' in data:
             agent_data[agent_id]['status'] = data['status']
-            
-        if 'last_episode' in data:
-            agent_data[agent_id]['last_episode'] = data['last_episode']
+            # Update online status based on the new status
+            agent_data[agent_id]['online'] = data['status'] != 'terminated'
+            # Update status in Firebase
+            firebase.update_agent_status(agent_id, data['status'])
         
-        return jsonify({'status': 'success'}), 200
+        # Update system status
+        firebase.update_system_status(len(agent_data), sum(1 for agent in agent_data.values() if agent.get('online', False)))
         
+        return jsonify({'status': 'success'})
     except Exception as e:
         log_event(f"ERROR in receive_updates: {str(e)}")
         return jsonify({'status': 'error', 'message': str(e)}), 500
@@ -664,8 +663,6 @@ def calculate_travel_times(topology):
                 travel_time = distance / speed_limit
                 travel_times[(agent_id, connection['agent_id'])] = travel_time
     return travel_times
-
-
 
 def get_drl_optimized_sync_times():
     """Get DRL-optimized synchronization times if available"""
@@ -1446,6 +1443,11 @@ function getStatusBadge(status) {
     # Start the background thread for saving data
     bg_thread = threading.Thread(target=save_data_periodically, daemon=True)
     bg_thread.start()
+    
+    # Start system status update thread
+    status_thread = threading.Thread(target=update_system_status)
+    status_thread.daemon = True
+    status_thread.start()
     
     # Run the server
     app.run(host='0.0.0.0', port=5000, debug=False)
