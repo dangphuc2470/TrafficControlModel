@@ -1,0 +1,19 @@
+<routes>
+            <vType id="veh_passenger" vClass="passenger" color="0,191,255"/>  <!-- Bright Sky Blue for passenger cars -->
+            <vType id="veh_bus" vClass="bus" color="255,69,0"/>  <!-- Bright Red-Orange for buses -->
+            <vType id="veh_truck" vClass="truck" color="50,205,50"/>  <!-- Bright Lime Green for trucks -->
+            <vType id="veh_emergency" vClass="emergency" color="255,215,0"/>  <!-- Bright Gold for emergency vehicles -->
+            <vType id="veh_motorcycle" vClass="motorcycle" color="255,105,180"/>  <!-- Bright Pink for motorcycles -->
+            <route id="W_N" edges="W2TL TL2N"/>
+            <route id="W_E" edges="W2TL TL2E"/>
+            <route id="W_S" edges="W2TL TL2S"/>
+            <route id="N_W" edges="N2TL TL2W"/>
+            <route id="N_E" edges="N2TL TL2E"/>
+            <route id="N_S" edges="N2TL TL2S"/>
+            <route id="E_N" edges="E2TL TL2N"/>
+            <route id="E_W" edges="E2TL TL2W"/>
+            <route id="E_S" edges="E2TL TL2S"/>
+            <route id="S_N" edges="S2TL TL2N"/>
+            <route id="S_E" edges="S2TL TL2E"/>
+            <route id="S_W" edges="S2TL TL2W"/>
+            </routes>

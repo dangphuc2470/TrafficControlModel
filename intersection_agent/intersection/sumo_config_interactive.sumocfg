@@ -4,7 +4,7 @@
 
     <input>
         <net-file value="environment.net.xml"/>
-        <route-files value="episode_routes_random_guiShape.rou.xml"/>
+        <route-files value="interactive_routes.rou.xml"/>
     </input>
 
     <time>

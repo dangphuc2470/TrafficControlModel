@@ -17,6 +17,7 @@ from generator import TrafficGenerator
 from model import TestModel
 from utils import import_test_configuration, set_sumo, set_test_path
 from agent_communicator import AgentCommunicatorTesting
+from interactive_simulation import InteractiveSimulation
 
 if 'SUMO_HOME' in os.environ:
     tools = os.path.join(os.environ['SUMO_HOME'], 'tools')
@@ -256,10 +257,15 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('--server-config', type=str, default='server_config_1.ini')
     parser.add_argument('--phase', type=str, help='Phase to use for model loading (e.g., "base", "sync"). If not specified, will use non-phase model.')
+    parser.add_argument('-i', '--interactive', action='store_true', help='Run in interactive testing mode with UI')
     args = parser.parse_args()
     
     # Configure the test
     config = import_test_configuration(config_file='testing_settings.ini')
+    
+    # Override interactive setting from command line
+    config['interactive_testing'] = args.interactive
+    
     sumo_cmd = set_sumo(config['gui'], config['sumocfg_file_name'], config['max_steps'])
     
     # Read server configuration first to get agent ID
@@ -293,6 +299,7 @@ if __name__ == "__main__":
         print("Using base model")
     else:
         print("Using sync-aware model (requires sync_agent)")
+    print(f"Testing mode: {'Interactive' if args.interactive else 'Non-interactive'}")
     print("=======================\n")
 
     if server_url:
@@ -300,48 +307,67 @@ if __name__ == "__main__":
     else:
         print("Running in standalone mode (no central server)")
 
-    # Create model and traffic generator
+    # Create model
     Model = TestModel(
         config['num_states'],
         model_path,
         phase=args.phase
     )
 
-    TrafficGen = TrafficGenerator(
-        config['max_steps'], 
-        config['n_cars_generated']
-    )
-
-    # Create the simulation with server integration
-    Simulation = TestingSimulationWithServer(
-        Model,
-        TrafficGen,
-        sumo_cmd,
-        config['max_steps'],
-        config['green_duration'],
-        config['yellow_duration'],
-        config['num_states'],
-        config['num_actions'],
-        server_url,
-        agent_id,
-        mapping_config,
-        env_file_path
-    )
-    
-    print("----- Testing episode")
-    simulation_time = Simulation.run(config['episode_seed'])
-    print("Simulation time:", simulation_time, "s")
-    
-    # Calculate and print statistics
-    print("----- Results -----")
-    reward_episode = Simulation.reward_episode
-    print("Average reward:", np.mean(reward_episode))
-    print("Total reward:", np.sum(reward_episode))
-    
-    queue_length_episode = Simulation.queue_length_episode
-    print("Average queue length:", np.mean(queue_length_episode))
-    
-    print("End of testing")
-    
-    # Final cleanup
-    Simulation.cleanup()
+    if args.interactive:
+        # Use interactive simulation with UI and random vehicle spawning
+        print("[INFO] Running in INTERACTIVE TESTING mode (UI + random vehicle spawning)")
+        simulation = InteractiveSimulation(
+            Model,
+            sumo_cmd,
+            config['max_steps'],
+            config['green_duration'],
+            config['yellow_duration'],
+            config['num_states'],
+            config['num_actions'],
+            server_url,
+            agent_id,
+            mapping_config,
+            env_file_path
+        )
+        print("----- Testing episode (interactive)")
+        simulation_time = simulation.run(config['episode_seed'])
+        print("Simulation time:", simulation_time, "s")
+        reward_episode = simulation.reward_episode
+        print("Average reward:", np.mean(reward_episode))
+        print("Total reward:", np.sum(reward_episode))
+        queue_length_episode = simulation.queue_length_episode
+        print("Average queue length:", np.mean(queue_length_episode))
+        print("End of testing")
+        simulation.cleanup()
+    else:
+        # Use the default server testing simulation
+        print("Using default server testing simulation")
+        TrafficGen = TrafficGenerator(
+            config['max_steps'], 
+            config['n_cars_generated']
+        )
+        Simulation = TestingSimulationWithServer(
+            Model,
+            TrafficGen,
+            sumo_cmd,
+            config['max_steps'],
+            config['green_duration'],
+            config['yellow_duration'],
+            config['num_states'],
+            config['num_actions'],
+            server_url,
+            agent_id,
+            mapping_config,
+            env_file_path
+        )
+        print("----- Testing episode")
+        simulation_time = Simulation.run(config['episode_seed'])
+        print("Simulation time:", simulation_time, "s")
+        reward_episode = Simulation.reward_episode
+        print("Average reward:", np.mean(reward_episode))
+        print("Total reward:", np.sum(reward_episode))
+        queue_length_episode = Simulation.queue_length_episode
+        print("Average queue length:", np.mean(queue_length_episode))
+        print("End of testing")
+        Simulation.cleanup()

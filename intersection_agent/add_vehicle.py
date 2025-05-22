@@ -30,7 +30,7 @@ class SimulationThread(QThread):
     stats_updated = pyqtSignal(dict)
     cumulative_stats_updated = pyqtSignal(dict)
     
-    def __init__(self):
+    def __init__(self, sumo_cmd=None):
         super().__init__()
         self.running = False
         self.step = 0
@@ -45,6 +45,7 @@ class SimulationThread(QThread):
         self.min_count = 1
         self.max_count = 8
         self.last_spawn_step = 0
+        self._sumo_cmd = sumo_cmd
         
         # Road IDs
         self.roads = {
@@ -113,8 +114,10 @@ class SimulationThread(QThread):
     
     def run(self):
         try:
-            sumo_cmd = self.set_sumo(gui=True)
-            traci.start(sumo_cmd)
+            # Only start SUMO if we have a command and traci isn't already running
+            if self._sumo_cmd and not traci.isLoaded():
+                traci.start(self._sumo_cmd)
+                time.sleep(1)  # Wait for traci to be ready
             
             # Define phase durations (in seconds)
             phase_durations = {
@@ -175,52 +178,8 @@ class SimulationThread(QThread):
         except Exception as e:
             print(f"Simulation error: {e}")
         finally:
-            if 'traci' in sys.modules and traci.isLoaded():
-                traci.close()
-    
-    def set_sumo(self, gui=True):
-        if gui:
-            sumoBinary = checkBinary('sumo-gui')
-        else:
-            sumoBinary = checkBinary('sumo')
-        
-        route_file = self.set_route_file()
-        
-        sumo_cmd = [
-            sumoBinary, 
-            "-n", os.path.join('intersection', 'environment.net.xml'),
-            "-r", route_file,
-            "--start", "--quit-on-end=False",
-            "--no-step-log", "true",
-            "--no-warnings", "true",
-            "--gui-settings-file", os.path.join('intersection', 'view.xml')
-        ]
-        
-        return sumo_cmd
-    
-    def set_route_file(self):
-        route_file = os.path.join("intersection", "interactive_routes.rou.xml")
-        with open(route_file, "w") as routes:
-            print("""<routes>
-            <vType id="veh_passenger" vClass="passenger" color="0,191,255"/>  <!-- Bright Sky Blue for passenger cars -->
-            <vType id="veh_bus" vClass="bus" color="255,69,0"/>  <!-- Bright Red-Orange for buses -->
-            <vType id="veh_truck" vClass="truck" color="50,205,50"/>  <!-- Bright Lime Green for trucks -->
-            <vType id="veh_emergency" vClass="emergency" color="255,215,0"/>  <!-- Bright Gold for emergency vehicles -->
-            <vType id="veh_motorcycle" vClass="motorcycle" color="255,105,180"/>  <!-- Bright Pink for motorcycles -->
-            <route id="W_N" edges="W2TL TL2N"/>
-            <route id="W_E" edges="W2TL TL2E"/>
-            <route id="W_S" edges="W2TL TL2S"/>
-            <route id="N_W" edges="N2TL TL2W"/>
-            <route id="N_E" edges="N2TL TL2E"/>
-            <route id="N_S" edges="N2TL TL2S"/>
-            <route id="E_N" edges="E2TL TL2N"/>
-            <route id="E_W" edges="E2TL TL2W"/>
-            <route id="E_S" edges="E2TL TL2S"/>
-            <route id="S_N" edges="S2TL TL2N"/>
-            <route id="S_E" edges="S2TL TL2E"/>
-            <route id="S_W" edges="S2TL TL2W"/>
-            </routes>""", file=routes)
-        return route_file
+            # Don't close traci here - let the main simulation handle that
+            pass
     
     def get_vehicle_data(self):
         if 'traci' not in sys.modules or not traci.isLoaded():
