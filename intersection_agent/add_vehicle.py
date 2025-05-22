@@ -4,10 +4,15 @@ import traci
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                             QHBoxLayout, QPushButton, QLabel, QComboBox, 
                             QLineEdit, QTableWidget, QTableWidgetItem, QGroupBox,
-                            QCheckBox, QSlider, QSpinBox, QRadioButton)
+                            QCheckBox, QSlider, QSpinBox, QRadioButton, QFrame, QHeaderView,
+                            QSplitter)
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
 import random
 import time
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.figure import Figure
+import numpy as np
 
 # Add SUMO tools to path
 if 'SUMO_HOME' in os.environ:
@@ -23,6 +28,7 @@ class SimulationThread(QThread):
     step_updated = pyqtSignal(int)
     vehicle_updated = pyqtSignal(dict)
     stats_updated = pyqtSignal(dict)
+    cumulative_stats_updated = pyqtSignal(dict)
     
     def __init__(self):
         super().__init__()
@@ -39,6 +45,45 @@ class SimulationThread(QThread):
         self.min_count = 1
         self.max_count = 8
         self.last_spawn_step = 0
+        
+        # Road IDs
+        self.roads = {
+            'north': 'N2TL',
+            'south': 'S2TL',
+            'east': 'E2TL',
+            'west': 'W2TL'
+        }
+        
+        # Cumulative statistics
+        self.total_queue = 0
+        self.total_waiting_time = 0
+        self.total_vehicles = 0
+        self.max_queue = 0
+        self.max_waiting_time = 0
+        self.vehicle_lengths = {
+            "veh_passenger": 5.0,
+            "veh_bus": 12.0,
+            "veh_truck": 10.0,
+            "veh_emergency": 6.0,
+            "veh_motorcycle": 2.0
+        }
+        self.total_length = 0
+        
+        # Per-road statistics
+        self.road_stats = {}
+        for road in self.roads.values():
+            self.road_stats[road] = {
+                'total_queue': 0,
+                'total_waiting_time': 0,
+                'total_vehicles': 0,
+                'max_queue': 0,
+                'max_waiting_time': 0,
+                'total_length': 0,
+                'current_queue': 0,
+                'current_waiting_time': 0,
+                'current_vehicles': 0,
+                'current_length': 0
+            }
         
         # Vehicle type distribution
         self.vehicle_types = {
@@ -116,10 +161,14 @@ class SimulationThread(QThread):
                         for _ in range(count):
                             self.spawn_random_vehicle()
                 
+                # Update cumulative statistics
+                self.update_cumulative_statistics()
+                
                 # Emit signals
                 self.step_updated.emit(self.step)
                 self.vehicle_updated.emit(self.get_vehicle_data())
                 self.stats_updated.emit(self.get_statistics())
+                self.cumulative_stats_updated.emit(self.get_cumulative_statistics())
                 
                 time.sleep(step_duration)
                 
@@ -218,6 +267,40 @@ class SimulationThread(QThread):
         
         return stats
     
+    def get_cumulative_statistics(self):
+        stats = {
+            'total_queue': self.total_queue,
+            'total_waiting_time': self.total_waiting_time,
+            'total_vehicles': self.total_vehicles,
+            'max_queue': self.max_queue,
+            'max_waiting_time': self.max_waiting_time,
+            'total_length': self.total_length,
+            'average_queue': self.total_queue / max(1, self.step),
+            'average_waiting_time': self.total_waiting_time / max(1, self.total_vehicles),
+            'average_length': self.total_length / max(1, self.total_vehicles),
+            'road_stats': {}
+        }
+        
+        # Add per-road statistics
+        for road_id, road_data in self.road_stats.items():
+            stats['road_stats'][road_id] = {
+                'total_queue': road_data['total_queue'],
+                'total_waiting_time': road_data['total_waiting_time'],
+                'total_vehicles': road_data['total_vehicles'],
+                'max_queue': road_data['max_queue'],
+                'max_waiting_time': road_data['max_waiting_time'],
+                'total_length': road_data['total_length'],
+                'current_queue': road_data['current_queue'],
+                'current_waiting_time': road_data['current_waiting_time'],
+                'current_vehicles': road_data['current_vehicles'],
+                'current_length': road_data['current_length'],
+                'average_queue': road_data['total_queue'] / max(1, self.step),
+                'average_waiting_time': road_data['total_waiting_time'] / max(1, road_data['total_vehicles']),
+                'average_length': road_data['total_length'] / max(1, road_data['total_vehicles'])
+            }
+        
+        return stats
+    
     def spawn_random_vehicle(self):
         try:
             # Select vehicle type based on distribution
@@ -253,30 +336,155 @@ class SimulationThread(QThread):
             )
         except Exception as e:
             print(f"Error spawning random vehicle: {e}")
+    
+    def update_cumulative_statistics(self):
+        if 'traci' not in sys.modules or not traci.isLoaded():
+            return
+        
+        try:
+            # Reset current road statistics
+            for road in self.roads.values():
+                self.road_stats[road]['current_queue'] = 0
+                self.road_stats[road]['current_waiting_time'] = 0
+                self.road_stats[road]['current_vehicles'] = 0
+                self.road_stats[road]['current_length'] = 0
+            
+            # Get current vehicles
+            vehicles = traci.vehicle.getIDList()
+            current_queue = 0
+            current_waiting_time = 0
+            current_length = 0
+            
+            for vid in vehicles:
+                try:
+                    # Get vehicle info
+                    road_id = traci.vehicle.getRoadID(vid)
+                    waiting_time = traci.vehicle.getWaitingTime(vid)
+                    vehicle_type = traci.vehicle.getTypeID(vid)
+                    speed = traci.vehicle.getSpeed(vid)
+                    
+                    # Update road-specific statistics
+                    if road_id in self.road_stats:
+                        self.road_stats[road_id]['current_vehicles'] += 1
+                        self.road_stats[road_id]['current_waiting_time'] += waiting_time
+                        if speed < 0.1:
+                            self.road_stats[road_id]['current_queue'] += 1
+                        if vehicle_type in self.vehicle_lengths:
+                            self.road_stats[road_id]['current_length'] += self.vehicle_lengths[vehicle_type]
+                    
+                    # Update global statistics
+                    if speed < 0.1:
+                        current_queue += 1
+                    current_waiting_time += waiting_time
+                    if vehicle_type in self.vehicle_lengths:
+                        current_length += self.vehicle_lengths[vehicle_type]
+                
+                except Exception as e:
+                    print(f"Error processing vehicle {vid}: {e}")
+            
+            # Update cumulative road statistics
+            for road in self.roads.values():
+                stats = self.road_stats[road]
+                stats['total_queue'] += stats['current_queue']
+                stats['total_waiting_time'] += stats['current_waiting_time']
+                stats['total_vehicles'] += stats['current_vehicles']
+                stats['total_length'] += stats['current_length']
+                stats['max_queue'] = max(stats['max_queue'], stats['current_queue'])
+                stats['max_waiting_time'] = max(stats['max_waiting_time'], stats['current_waiting_time'])
+            
+            # Update global statistics
+            self.total_queue += current_queue
+            self.total_waiting_time += current_waiting_time
+            self.total_length += current_length
+            self.total_vehicles += len(vehicles)
+            self.max_queue = max(self.max_queue, current_queue)
+            self.max_waiting_time = max(self.max_waiting_time, current_waiting_time)
+            
+        except Exception as e:
+            print(f"Error updating cumulative statistics: {e}")
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Traffic Simulation Control")
-        self.setGeometry(100, 100, 1400, 800)
+        self.setGeometry(100, 100, 1600, 1000)  # Increased width for better horizontal layout
 
         # Create simulation thread FIRST
         self.sim_thread = SimulationThread()
         self.sim_thread.step_updated.connect(self.update_step)
         self.sim_thread.vehicle_updated.connect(self.update_vehicles)
         self.sim_thread.stats_updated.connect(self.update_statistics)
+        self.sim_thread.cumulative_stats_updated.connect(self.update_cumulative_statistics)
 
         # Create central widget and layout
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         main_layout = QHBoxLayout(central_widget)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+
+        # Create splitter for resizable panels
+        splitter = QSplitter(Qt.Horizontal)
+        main_layout.addWidget(splitter)
 
         # Create left panel for auto spawn controls
-        left_panel = QWidget()
-        left_layout = QVBoxLayout(left_panel)
+        self.left_panel = QWidget()
+        left_layout = QVBoxLayout(self.left_panel)
         left_layout.setContentsMargins(0, 0, 0, 0)
-        self.create_auto_spawn_panel(left_layout)
-        main_layout.addWidget(left_panel, stretch=1)
+        
+        # Add toggle button for auto spawn controls
+        toggle_button = QPushButton("Hide Auto Spawn Controls")
+        toggle_button.clicked.connect(self.toggle_auto_spawn_panel)
+        left_layout.addWidget(toggle_button)
+        
+        # Create auto spawn controls container
+        self.auto_spawn_container = QWidget()
+        auto_spawn_layout = QVBoxLayout(self.auto_spawn_container)
+        self.create_auto_spawn_panel(auto_spawn_layout)
+        left_layout.addWidget(self.auto_spawn_container)
+        
+        # Create plot for average statistics
+        plot_group = QGroupBox("Road Statistics Plots")
+        plot_layout = QVBoxLayout()
+        
+        # Create matplotlib figure with 4 subplots in a column
+        self.figure = Figure(figsize=(8, 12))  # Taller figure for vertical layout
+        self.canvas = FigureCanvas(self.figure)
+        
+        # Create 4 subplots in a column
+        self.axes = {
+            'N2TL': self.figure.add_subplot(411),  # Changed to 4x1 layout
+            'S2TL': self.figure.add_subplot(412),
+            'E2TL': self.figure.add_subplot(413),
+            'W2TL': self.figure.add_subplot(414)
+        }
+        
+        # Initialize plot data for each road
+        self.plot_data = {
+            'steps': [],
+            'N2TL': {'queue': [], 'wait': [], 'length': []},
+            'S2TL': {'queue': [], 'wait': [], 'length': []},
+            'E2TL': {'queue': [], 'wait': [], 'length': []},
+            'W2TL': {'queue': [], 'wait': [], 'length': []}
+        }
+        
+        # Set up plots
+        for road, ax in self.axes.items():
+            ax.set_title(f'{road} Statistics')
+            ax.set_xlabel('Simulation Steps')
+            ax.set_ylabel('Value')
+            ax.grid(True)
+            ax.legend(['Queue', 'Wait Time', 'Queue Length'])
+        
+        # Adjust layout to prevent overlap
+        self.figure.tight_layout(pad=3.0)
+        
+        # Add canvas to layout
+        plot_layout.addWidget(self.canvas)
+        plot_group.setLayout(plot_layout)
+        left_layout.addWidget(plot_group)
+        
+        # Add left panel to splitter
+        splitter.addWidget(self.left_panel)
 
         # Create right panel for other controls
         right_panel = QWidget()
@@ -286,7 +494,12 @@ class MainWindow(QMainWindow):
         self.create_vehicle_panel(right_layout)
         self.create_vehicle_table(right_layout)
         self.create_statistics_panel(right_layout)
-        main_layout.addWidget(right_panel, stretch=2)
+        
+        # Add right panel to splitter
+        splitter.addWidget(right_panel)
+        
+        # Set initial sizes (40% left, 60% right)
+        splitter.setSizes([640, 960])
 
         # Initialize vehicle counter
         self.vehicle_counter = 0
@@ -601,8 +814,9 @@ class MainWindow(QMainWindow):
         parent_layout.addWidget(group)
     
     def create_statistics_panel(self, parent_layout):
-        group = QGroupBox("Intersection Statistics")
-        layout = QHBoxLayout()
+        # Create main statistics group
+        main_stats_group = QGroupBox("Intersection Statistics")
+        main_stats_layout = QHBoxLayout()
         
         # Create statistics for each direction
         for direction in ["North", "South", "East", "West"]:
@@ -621,7 +835,7 @@ class MainWindow(QMainWindow):
             setattr(self, f"{direction.lower()}_queue", queue_label)
             setattr(self, f"{direction.lower()}_speed", speed_label)
             
-            layout.addLayout(direction_layout)
+            main_stats_layout.addLayout(direction_layout)
         
         # Traffic light control
         light_layout = QVBoxLayout()
@@ -640,10 +854,56 @@ class MainWindow(QMainWindow):
             phase_layout.addWidget(button)
         
         light_layout.addLayout(phase_layout)
-        layout.addLayout(light_layout)
+        main_stats_layout.addLayout(light_layout)
         
-        group.setLayout(layout)
-        parent_layout.addWidget(group)
+        main_stats_group.setLayout(main_stats_layout)
+        parent_layout.addWidget(main_stats_group)
+        
+        # Create cumulative statistics group
+        cumulative_stats_group = QGroupBox("Cumulative Statistics")
+        cumulative_stats_layout = QVBoxLayout()
+        
+        # Create statistics table
+        self.stats_table = QTableWidget()
+        self.stats_table.setColumnCount(14)  # Number of statistics columns
+        self.stats_table.setRowCount(5)  # Global + 4 roads
+        
+        # Set headers with full names
+        headers = [
+            "Road",
+            "Current Queue", "Current Wait", "Current Vehicles", "Current Length",
+            "Total Queue", "Total Wait", "Total Vehicles", "Total Length",
+            "Max Queue", "Max Wait",
+            "Avg Queue", "Avg Wait", "Avg Length"
+        ]
+        self.stats_table.setHorizontalHeaderLabels(headers)
+        
+        # Set row labels
+        row_labels = ["Global", "N2TL", "S2TL", "E2TL", "W2TL"]
+        self.stats_table.setVerticalHeaderLabels(row_labels)
+        
+        # Initialize cells
+        for row in range(5):
+            for col in range(14):
+                item = QTableWidgetItem("0")
+                item.setTextAlignment(Qt.AlignCenter)
+                self.stats_table.setItem(row, col, item)
+        
+        # Set column widths
+        self.stats_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
+        self.stats_table.verticalHeader().setSectionResizeMode(QHeaderView.ResizeToContents)
+        
+        # Add table to layout
+        cumulative_stats_layout.addWidget(self.stats_table)
+        
+        # Add legend for units
+        legend_layout = QHBoxLayout()
+        legend_layout.addWidget(QLabel("Units:"))
+        legend_layout.addWidget(QLabel("Queue: vehicles | Wait: seconds | Length: meters"))
+        cumulative_stats_layout.addLayout(legend_layout)
+        
+        cumulative_stats_group.setLayout(cumulative_stats_layout)
+        parent_layout.addWidget(cumulative_stats_group)
     
     def toggle_simulation(self):
         if not self.sim_thread.running:
@@ -1009,6 +1269,126 @@ class MainWindow(QMainWindow):
         for route, weight in self.sim_thread.route_weights.items():
             self.route_sliders[route].setValue(weight)
             self.route_sliders[f"{route}_label"].setText(f"{weight}%")
+
+    def toggle_auto_spawn_panel(self):
+        sender = self.sender()
+        if self.auto_spawn_container.isVisible():
+            self.auto_spawn_container.hide()
+            sender.setText("Show Auto Spawn Controls")
+        else:
+            self.auto_spawn_container.show()
+            sender.setText("Hide Auto Spawn Controls")
+
+    def update_cumulative_statistics(self, stats):
+        # Update table statistics
+        self.update_table_row(0, {
+            'current': {
+                'queue': stats['total_queue'],
+                'waiting': stats['total_waiting_time'],
+                'vehicles': stats['total_vehicles'],
+                'length': stats['total_length']
+            },
+            'total': {
+                'queue': stats['total_queue'],
+                'waiting': stats['total_waiting_time'],
+                'vehicles': stats['total_vehicles'],
+                'length': stats['total_length']
+            },
+            'max': {
+                'queue': stats['max_queue'],
+                'waiting': stats['max_waiting_time']
+            },
+            'avg': {
+                'queue': stats['average_queue'],
+                'waiting': stats['average_waiting_time'],
+                'length': stats['average_length']
+            }
+        })
+        
+        # Update per-road statistics
+        for i, road_id in enumerate(['N2TL', 'S2TL', 'E2TL', 'W2TL'], 1):
+            road_stats = stats['road_stats'][road_id]
+            self.update_table_row(i, {
+                'current': {
+                    'queue': road_stats['current_queue'],
+                    'waiting': road_stats['current_waiting_time'],
+                    'vehicles': road_stats['current_vehicles'],
+                    'length': road_stats['current_length']
+                },
+                'total': {
+                    'queue': road_stats['total_queue'],
+                    'waiting': road_stats['total_waiting_time'],
+                    'vehicles': road_stats['total_vehicles'],
+                    'length': road_stats['total_length']
+                },
+                'max': {
+                    'queue': road_stats['max_queue'],
+                    'waiting': road_stats['max_waiting_time']
+                },
+                'avg': {
+                    'queue': road_stats['average_queue'],
+                    'waiting': road_stats['average_waiting_time'],
+                    'length': road_stats['average_length']
+                }
+            })
+            
+            # Update plot data for each road
+            self.plot_data[road_id]['queue'].append(road_stats['current_queue'])
+            self.plot_data[road_id]['wait'].append(road_stats['current_waiting_time'])
+            self.plot_data[road_id]['length'].append(road_stats['current_length'])
+        
+        # Update steps
+        self.plot_data['steps'].append(self.sim_thread.step)
+        
+        # Keep only last 100 points for better visualization
+        max_points = 100
+        if len(self.plot_data['steps']) > max_points:
+            self.plot_data['steps'] = self.plot_data['steps'][-max_points:]
+            for road in ['N2TL', 'S2TL', 'E2TL', 'W2TL']:
+                self.plot_data[road]['queue'] = self.plot_data[road]['queue'][-max_points:]
+                self.plot_data[road]['wait'] = self.plot_data[road]['wait'][-max_points:]
+                self.plot_data[road]['length'] = self.plot_data[road]['length'][-max_points:]
+        
+        # Update plots for each road
+        for road, ax in self.axes.items():
+            ax.clear()
+            ax.plot(self.plot_data['steps'], self.plot_data[road]['queue'], 
+                   label='Queue', color='red', linewidth=2)
+            ax.plot(self.plot_data['steps'], self.plot_data[road]['wait'], 
+                   label='Wait Time', color='blue', linewidth=2)
+            ax.plot(self.plot_data['steps'], self.plot_data[road]['length'], 
+                   label='Queue Length', color='green', linewidth=2)
+            ax.set_title(f'{road} Statistics')
+            ax.set_xlabel('Simulation Steps')
+            ax.set_ylabel('Queue (veh) / Wait Time (s)')
+            ax.grid(True)
+            ax.legend()
+        
+        # Adjust layout
+        self.figure.tight_layout(pad=3.0)
+        self.canvas.draw()
+
+    def update_table_row(self, row, stats):
+        # Current stats
+        self.stats_table.item(row, 1).setText(f"{stats['current']['queue']}")
+        self.stats_table.item(row, 2).setText(f"{stats['current']['waiting']:.1f}s")
+        self.stats_table.item(row, 3).setText(f"{stats['current']['vehicles']}")
+        self.stats_table.item(row, 4).setText(f"{stats['current']['length']:.1f}m")
+        
+        # Total stats
+        self.stats_table.item(row, 5).setText(f"{stats['total']['queue']}")
+        self.stats_table.item(row, 6).setText(f"{stats['total']['waiting']:.1f}s")
+        self.stats_table.item(row, 7).setText(f"{stats['total']['vehicles']}")
+        self.stats_table.item(row, 8).setText(f"{stats['total']['length']:.1f}m")
+        
+        # Max stats
+        self.stats_table.item(row, 9).setText(f"{stats['max']['queue']}")
+        self.stats_table.item(row, 10).setText(f"{stats['max']['waiting']:.1f}s")
+        
+        # Average stats
+        self.stats_table.item(row, 11).setText(f"{stats['avg']['queue']:.1f}")
+        self.stats_table.item(row, 12).setText(f"{stats['avg']['waiting']:.1f}s")
+        self.stats_table.item(row, 13).setText(f"{stats['avg']['length']:.1f}m")
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
