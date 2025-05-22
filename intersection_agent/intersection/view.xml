@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<viewsettings>
+    <scheme name="real world"/>
+    <delay value="20"/>
+    <vehicleMode value="9"/>
+    <vehicleQuality value="3"/>
+    <vehicleName value="0"/>
+    <vehicleSize value="1.0"/>
+    <vehicleNameShow value="0"/>
+    <vehicleNameSize value="50"/>
+    <vehicleNameColor value="0,0,0"/>
+    <vehicleNameBackground value="0"/>
+    <vehicleNameBackgroundColor value="255,255,255"/>
+    <vehicleNameBackgroundAlpha value="0.5"/>
+    <vehicleNameBackgroundSize value="0.5"/>
+    <vehicleNameBackgroundOffset value="0.0"/>
+    <vehicleNameBackgroundRotation value="0.0"/>
+    <vehicleNameBackgroundScale value="1.0"/>
+    <minGap value="2.5"/>
+</viewsettings>

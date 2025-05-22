@@ -1083,8 +1083,7 @@ class MainWindow(QMainWindow):
     <vehicleNameBackgroundRotation value="0.0"/>
     <vehicleNameBackgroundScale value="1.0"/>
     <minGap value="2.5"/>
-</viewsettings>""")
-            
+</viewsettings>""")            
             print("Render mode toggled: ", state)
             
         except Exception as e:
@@ -1308,24 +1307,35 @@ class MainWindow(QMainWindow):
                 self.plot_data[road]['wait'] = self.plot_data[road]['wait'][-max_points:]
                 self.plot_data[road]['length'] = self.plot_data[road]['length'][-max_points:]
         
-        # Update plots for each road
-        for road, ax in self.axes.items():
-            ax.clear()
-            ax.plot(self.plot_data['steps'], self.plot_data[road]['queue'], 
-                   label='Queue', color='red', linewidth=2)
-            ax.plot(self.plot_data['steps'], self.plot_data[road]['wait'], 
-                   label='Wait Time', color='blue', linewidth=2)
-            ax.plot(self.plot_data['steps'], self.plot_data[road]['length'], 
-                   label='Queue Length', color='green', linewidth=2)
-            ax.set_title(f'{road} Statistics')
-            ax.set_xlabel('Simulation Steps')
-            ax.set_ylabel('Queue (veh) / Wait Time (s)')
-            ax.grid(True)
-            ax.legend()
-        
-        # Adjust layout
-        self.figure.tight_layout(pad=3.0)
-        self.canvas.draw()
+        try:
+            # Update plots for each road
+            for road, ax in self.axes.items():
+                ax.clear()
+                ax.plot(self.plot_data['steps'], self.plot_data[road]['queue'], 
+                       label='Queue', color='red', linewidth=2)
+                ax.plot(self.plot_data['steps'], self.plot_data[road]['wait'], 
+                       label='Wait Time', color='blue', linewidth=2)
+                ax.plot(self.plot_data['steps'], self.plot_data[road]['length'], 
+                       label='Queue Length', color='green', linewidth=2)
+                ax.set_title(f'{road} Statistics')
+                ax.set_xlabel('Simulation Steps')
+                ax.set_ylabel('Queue (veh) / Wait Time (s)')
+                ax.grid(True)
+                ax.legend()
+            
+            # Use a more robust layout adjustment
+            self.figure.subplots_adjust(
+                left=0.1,
+                right=0.9,
+                top=0.95,
+                bottom=0.05,
+                hspace=0.3,
+                wspace=0.2
+            )
+            
+            self.canvas.draw()
+        except Exception as e:
+            print(f"Error updating plots: {e}")
 
     def update_table_row(self, row, stats):
         # Current stats
@@ -1350,6 +1360,22 @@ class MainWindow(QMainWindow):
         self.stats_table.item(row, 13).setText(f"{stats['avg']['length']:.1f}m")
 
 if __name__ == "__main__":
+    # Initialize SUMO
+    if 'SUMO_HOME' not in os.environ:
+        sys.exit("Please declare environment variable 'SUMO_HOME'")
+    
+    # Set up SUMO command
+    sumo_binary = checkBinary('sumo-gui')
+    sumo_cmd = [sumo_binary, 
+                '-c', 'intersection/sumo_config_interactive.sumocfg',
+                '--no-step-log', 'true',
+                '--no-warnings', 'true']
+    
+    # Create and show the main window
     app = QApplication(sys.argv)
     window = MainWindow()
+    
+    # Set the SUMO command in the simulation thread
+    window.sim_thread._sumo_cmd = sumo_cmd
+    
     sys.exit(app.exec_())
