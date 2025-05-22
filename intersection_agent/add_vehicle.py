@@ -4,7 +4,7 @@ import traci
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                             QHBoxLayout, QPushButton, QLabel, QComboBox, 
                             QLineEdit, QTableWidget, QTableWidgetItem, QGroupBox,
-                            QCheckBox, QSlider, QSpinBox)
+                            QCheckBox, QSlider, QSpinBox, QRadioButton)
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
 import random
 import time
@@ -28,25 +28,25 @@ class SimulationThread(QThread):
         super().__init__()
         self.running = False
         self.step = 0
-        self.speed = 1.0
-        self.auto_spawn = False
-        self.spawn_interval = 10
-        self.spawn_interval_random = False
-        self.min_interval = 5
-        self.max_interval = 15
-        self.spawn_count = 1
-        self.spawn_count_random = False
+        self.speed = 5.0
+        self.auto_spawn = True
+        self.spawn_interval = 4
+        self.spawn_interval_random = True
+        self.min_interval = 2
+        self.max_interval = 6
+        self.spawn_count = 5
+        self.spawn_count_random = True
         self.min_count = 1
-        self.max_count = 3
+        self.max_count = 8
         self.last_spawn_step = 0
         
         # Vehicle type distribution
         self.vehicle_types = {
-            "standard_car": 70,    # 70% standard cars
-            "bus": 10,             # 10% buses
-            "truck": 10,           # 10% trucks
-            "emergency": 5,        # 5% emergency vehicles
-            "motorcycle": 5        # 5% motorcycles
+            "veh_passenger": 70,    # 70% standard cars
+            "veh_bus": 10,          # 10% buses
+            "veh_truck": 10,        # 10% trucks
+            "veh_emergency": 5,     # 5% emergency vehicles
+            "veh_motorcycle": 5     # 5% motorcycles
         }
         
         # Route distribution
@@ -57,13 +57,13 @@ class SimulationThread(QThread):
             "S_N": 15, "S_E": 15, "S_W": 15
         }
         
-        # Speed ranges for different vehicle types
+        # Speed ranges for different vehicle types (reduced to prevent too high speeds)
         self.speed_ranges = {
-            "standard_car": (5, 15),
-            "bus": (3, 10),
-            "truck": (3, 8),
-            "emergency": (8, 20),
-            "motorcycle": (7, 18)
+            "veh_passenger": (3, 8),    # Reduced from (5, 15)
+            "veh_bus": (2, 6),          # Reduced from (3, 10)
+            "veh_truck": (2, 5),        # Reduced from (3, 8)
+            "veh_emergency": (4, 10),   # Reduced from (8, 20)
+            "veh_motorcycle": (3, 8)    # Reduced from (7, 18)
         }
     
     def run(self):
@@ -71,10 +71,34 @@ class SimulationThread(QThread):
             sumo_cmd = self.set_sumo(gui=True)
             traci.start(sumo_cmd)
             
+            # Define phase durations (in seconds)
+            phase_durations = {
+                0: 31,  # NS Green
+                1: 2,   # NS Yellow
+                2: 15,  # NSL Green
+                3: 2,   # NSL Yellow
+                4: 31,  # EW Green
+                5: 2,   # EW Yellow
+                6: 15,  # EWL Green
+                7: 2    # EWL Yellow
+            }
+            
+            current_phase = -1
+            
             while self.running:
                 step_duration = 1.0 / self.speed
                 traci.simulationStep()
                 self.step += 1
+                
+                # Check if phase changed
+                try:
+                    new_phase = traci.trafficlight.getPhase("TL")
+                    if new_phase != current_phase:
+                        current_phase = new_phase
+                        # Set new phase duration
+                        traci.trafficlight.setPhaseDuration("TL", phase_durations[new_phase])
+                except Exception as e:
+                    print(f"Error setting traffic light phase: {e}")
                 
                 # Handle automatic spawning with random intervals
                 if self.auto_spawn:
@@ -120,18 +144,20 @@ class SimulationThread(QThread):
             "--start", "--quit-on-end=False",
             "--no-step-log", "true",
             "--no-warnings", "true",
-            "--delay", "100"
+            "--gui-settings-file", os.path.join('intersection', 'view.xml')
         ]
         
         return sumo_cmd
     
     def set_route_file(self):
         route_file = os.path.join("intersection", "interactive_routes.rou.xml")
-        
         with open(route_file, "w") as routes:
             print("""<routes>
-            <vType accel="1.0" decel="4.5" id="standard_car" length="5.0" minGap="2.5" maxSpeed="25" sigma="0.5" />
-
+            <vType id="veh_passenger" vClass="passenger" color="0,191,255"/>  <!-- Bright Sky Blue for passenger cars -->
+            <vType id="veh_bus" vClass="bus" color="255,69,0"/>  <!-- Bright Red-Orange for buses -->
+            <vType id="veh_truck" vClass="truck" color="50,205,50"/>  <!-- Bright Lime Green for trucks -->
+            <vType id="veh_emergency" vClass="emergency" color="255,215,0"/>  <!-- Bright Gold for emergency vehicles -->
+            <vType id="veh_motorcycle" vClass="motorcycle" color="255,105,180"/>  <!-- Bright Pink for motorcycles -->
             <route id="W_N" edges="W2TL TL2N"/>
             <route id="W_E" edges="W2TL TL2E"/>
             <route id="W_S" edges="W2TL TL2S"/>
@@ -145,7 +171,6 @@ class SimulationThread(QThread):
             <route id="S_E" edges="S2TL TL2E"/>
             <route id="S_W" edges="S2TL TL2W"/>
             </routes>""", file=routes)
-        
         return route_file
     
     def get_vehicle_data(self):
@@ -214,7 +239,11 @@ class SimulationThread(QThread):
             # Random lane selection
             lane = random.choice(["random", "0", "1", "2"])
             
-            vehicle_id = f"auto_{vehicle_type}_{route}_{self.step}"
+            # Create unique vehicle ID using timestamp and random number
+            timestamp = int(time.time() * 1000)  # milliseconds
+            random_suffix = random.randint(1000, 9999)
+            vehicle_id = f"auto_{vehicle_type}_{route}_{timestamp}_{random_suffix}"
+            
             traci.vehicle.add(
                 vehID=vehicle_id,
                 routeID=route,
@@ -274,6 +303,12 @@ class MainWindow(QMainWindow):
         self.start_button.clicked.connect(self.toggle_simulation)
         layout.addWidget(self.start_button)
         
+        # Render mode toggle (changed to checkbox)
+        self.render_mode_check = QCheckBox("Simple Shapes")
+        self.render_mode_check.setChecked(True)  # Default to simple shapes
+        self.render_mode_check.stateChanged.connect(self.toggle_render_mode)
+        layout.addWidget(self.render_mode_check)
+        
         # Status label
         self.status_label = QLabel("Status: Not running")
         layout.addWidget(self.status_label)
@@ -283,13 +318,15 @@ class MainWindow(QMainWindow):
         layout.addWidget(self.step_label)
         
         # Speed control
-        layout.addWidget(QLabel("Speed:"))
+        speed_layout = QVBoxLayout()
+        speed_layout.addWidget(QLabel("Simulation Speed:"))
         self.speed_slider = QSlider(Qt.Horizontal)
         self.speed_slider.setMinimum(1)
-        self.speed_slider.setMaximum(10)
-        self.speed_slider.setValue(1)
+        self.speed_slider.setMaximum(50)  # Increased from 10 to 50
+        self.speed_slider.setValue(5)  # Default to 5x speed
         self.speed_slider.valueChanged.connect(self.update_speed)
-        layout.addWidget(self.speed_slider)
+        speed_layout.addWidget(self.speed_slider)
+        layout.addLayout(speed_layout)
         
         group.setLayout(layout)
         parent_layout.addWidget(group)
@@ -305,8 +342,39 @@ class MainWindow(QMainWindow):
         
         # Enable/disable auto spawn
         self.auto_spawn_check = QCheckBox("Enable Auto Spawn")
+        self.auto_spawn_check.setChecked(True)  # Default enabled
         self.auto_spawn_check.stateChanged.connect(self.toggle_auto_spawn)
         basic_layout.addWidget(self.auto_spawn_check)
+        
+        # Initialize auto spawn as enabled in the simulation thread
+        self.sim_thread.auto_spawn = True  # Default active
+        
+        # Distribution presets
+        preset_group = QGroupBox("Traffic Pattern")
+        preset_layout = QVBoxLayout()
+        
+        # Create radio buttons for presets
+        self.preset_buttons = []
+        preset_names = [
+            "Urban Rush Hour",
+            "Highway Traffic",
+            "Mixed Traffic",
+            "Emergency Heavy",
+            "N-S Dominant",
+            "E-W Dominant",
+            "Diagonal",
+            "Circular"
+        ]
+        
+        # Create radio buttons
+        for i, name in enumerate(preset_names):
+            radio = QRadioButton(name)
+            radio.clicked.connect(lambda checked, idx=i+1: self.apply_distribution_preset(idx) if checked else None)
+            self.preset_buttons.append(radio)
+            preset_layout.addWidget(radio)
+        
+        preset_group.setLayout(preset_layout)
+        basic_layout.addWidget(preset_group)
         
         # Spawn interval
         interval_group = QGroupBox("Spawn Interval")
@@ -318,13 +386,14 @@ class MainWindow(QMainWindow):
         self.interval_spin = QSpinBox()
         self.interval_spin.setMinimum(1)
         self.interval_spin.setMaximum(100)
-        self.interval_spin.setValue(10)
+        self.interval_spin.setValue(4)  # Default to 4
         self.interval_spin.valueChanged.connect(self.update_spawn_interval)
         fixed_interval_layout.addWidget(self.interval_spin)
         interval_layout.addLayout(fixed_interval_layout)
         
         random_interval_layout = QHBoxLayout()
         self.random_interval_check = QCheckBox("Random")
+        self.random_interval_check.setChecked(True)  # Default enabled
         self.random_interval_check.stateChanged.connect(self.toggle_random_interval)
         random_interval_layout.addWidget(self.random_interval_check)
         
@@ -333,7 +402,7 @@ class MainWindow(QMainWindow):
         self.min_interval_spin = QSpinBox()
         self.min_interval_spin.setMinimum(1)
         self.min_interval_spin.setMaximum(50)
-        self.min_interval_spin.setValue(5)
+        self.min_interval_spin.setValue(4)  # Default to 4
         self.min_interval_spin.valueChanged.connect(self.update_min_interval)
         min_max_layout.addWidget(self.min_interval_spin)
         
@@ -360,13 +429,14 @@ class MainWindow(QMainWindow):
         self.count_spin = QSpinBox()
         self.count_spin.setMinimum(1)
         self.count_spin.setMaximum(10)
-        self.count_spin.setValue(1)
+        self.count_spin.setValue(5)  # Default to 5
         self.count_spin.valueChanged.connect(self.update_spawn_count)
         fixed_count_layout.addWidget(self.count_spin)
         count_layout.addLayout(fixed_count_layout)
         
         random_count_layout = QHBoxLayout()
         self.random_count_check = QCheckBox("Random")
+        self.random_count_check.setChecked(True)  # Default enabled
         self.random_count_check.stateChanged.connect(self.toggle_random_count)
         random_count_layout.addWidget(self.random_count_check)
         
@@ -383,8 +453,7 @@ class MainWindow(QMainWindow):
         self.max_count_spin = QSpinBox()
         self.max_count_spin.setMinimum(1)
         self.max_count_spin.setMaximum(10)
-        self.max_count_spin.setValue(3)
-        self.max_count_spin.valueChanged.connect(self.update_max_count)
+        self.max_count_spin.setValue(6)  # Default to 6
         min_max_count_layout.addWidget(self.max_count_spin)
         random_count_layout.addLayout(min_max_count_layout)
         count_layout.addLayout(random_count_layout)
@@ -450,6 +519,10 @@ class MainWindow(QMainWindow):
         
         group.setLayout(layout)
         parent_layout.addWidget(group)
+        
+        # Set N-S Dominant as default after all UI elements are created
+        self.preset_buttons[4].setChecked(True)  # Index 4 is N-S Dominant
+        self.apply_distribution_preset(5)  # Apply N-S Dominant preset
     
     def create_vehicle_panel(self, parent_layout):
         group = QGroupBox("Add Vehicle")
@@ -469,7 +542,7 @@ class MainWindow(QMainWindow):
         # Vehicle type selection
         self.vehicle_type_combo = QComboBox()
         self.vehicle_type_combo.addItems([
-            "standard_car", "bus", "truck", "emergency", "motorcycle"
+            "veh_passenger", "veh_bus", "veh_truck", "veh_emergency", "veh_motorcycle"
         ])
         layout.addWidget(QLabel("Type:"))
         layout.addWidget(self.vehicle_type_combo)
@@ -628,7 +701,7 @@ class MainWindow(QMainWindow):
             
             vehicle_id = f"{vehicle_type}_{route}_{self.vehicle_counter}"
             self.vehicle_counter += 1
-            
+        
             traci.vehicle.add(
                 vehID=vehicle_id,
                 routeID=route,
@@ -741,6 +814,201 @@ class MainWindow(QMainWindow):
     def update_route_distribution(self, route, value):
         self.sim_thread.route_weights[route] = value
         self.route_sliders[f"{route}_label"].setText(f"{value}%")
+
+    def toggle_render_mode(self, state):
+        try:
+            if state:
+                # Switch to simple shapes
+                view_file = os.path.join('intersection', 'view.xml')
+                with open(view_file, 'w') as f:
+                    f.write("""<?xml version="1.0" encoding="UTF-8"?>
+<viewsettings>
+    <scheme name="standard"/>
+    <delay value="20"/>
+    <vehicleMode value="0"/>
+    <vehicleQuality value="0"/>
+    <vehicleName value="0"/>
+    <vehicleSize value="1.0"/>
+    <vehicleNameShow value="0"/>
+    <vehicleNameSize value="50"/>
+    <vehicleNameColor value="0,0,0"/>
+    <vehicleNameBackground value="0"/>
+    <vehicleNameBackgroundColor value="255,255,255"/>
+    <vehicleNameBackgroundAlpha value="0.5"/>
+    <vehicleNameBackgroundSize value="0.5"/>
+    <vehicleNameBackgroundOffset value="0.0"/>
+    <vehicleNameBackgroundRotation value="0.0"/>
+    <vehicleNameBackgroundScale value="1.0"/>
+    <minGap value="0.5"/>
+</viewsettings>""")
+            else:
+                # Switch to real world rendering
+                view_file = os.path.join('intersection', 'view.xml')
+                with open(view_file, 'w') as f:
+                    f.write("""<?xml version="1.0" encoding="UTF-8"?>
+<viewsettings>
+    <scheme name="real world"/>
+    <delay value="20"/>
+    <vehicleMode value="9"/>
+    <vehicleQuality value="3"/>
+    <vehicleName value="0"/>
+    <vehicleSize value="1.0"/>
+    <vehicleNameShow value="0"/>
+    <vehicleNameSize value="50"/>
+    <vehicleNameColor value="0,0,0"/>
+    <vehicleNameBackground value="0"/>
+    <vehicleNameBackgroundColor value="255,255,255"/>
+    <vehicleNameBackgroundAlpha value="0.5"/>
+    <vehicleNameBackgroundSize value="0.5"/>
+    <vehicleNameBackgroundOffset value="0.0"/>
+    <vehicleNameBackgroundRotation value="0.0"/>
+    <vehicleNameBackgroundScale value="1.0"/>
+    <minGap value="2.5"/>
+</viewsettings>""")
+            
+            print("Render mode toggled: ", state)
+            
+        except Exception as e:
+            print(f"Error toggling render mode: {e}")
+
+    def apply_distribution_preset(self, preset_num):
+        if preset_num == 1:  # Urban Rush Hour
+            # More passenger cars, some buses, few trucks
+            self.sim_thread.vehicle_types = {
+                "veh_passenger": 75,
+                "veh_bus": 15,
+                "veh_truck": 5,
+                "veh_emergency": 3,
+                "veh_motorcycle": 2
+            }
+            # More traffic on main roads
+            self.sim_thread.route_weights = {
+                "W_N": 12, "W_E": 15, "W_S": 8,
+                "N_W": 8, "N_E": 15, "N_S": 12,
+                "E_N": 15, "E_S": 8, "E_W": 12,
+                "S_N": 8, "S_E": 12, "S_W": 15
+            }
+        elif preset_num == 2:  # Highway Traffic
+            # More trucks, fewer passenger cars
+            self.sim_thread.vehicle_types = {
+                "veh_passenger": 45,
+                "veh_bus": 10,
+                "veh_truck": 35,
+                "veh_emergency": 5,
+                "veh_motorcycle": 5
+            }
+            # More through traffic
+            self.sim_thread.route_weights = {
+                "W_N": 10, "W_E": 20, "W_S": 10,
+                "N_W": 10, "N_E": 20, "N_S": 10,
+                "E_N": 10, "E_S": 20, "E_W": 10,
+                "S_N": 10, "S_E": 20, "S_W": 10
+            }
+        elif preset_num == 3:  # Mixed Traffic
+            # Even distribution of vehicle types
+            self.sim_thread.vehicle_types = {
+                "veh_passenger": 40,
+                "veh_bus": 20,
+                "veh_truck": 20,
+                "veh_emergency": 10,
+                "veh_motorcycle": 10
+            }
+            # Even distribution of routes
+            self.sim_thread.route_weights = {
+                "W_N": 8, "W_E": 8, "W_S": 8,
+                "N_W": 8, "N_E": 8, "N_S": 8,
+                "E_N": 8, "E_S": 8, "E_W": 8,
+                "S_N": 8, "S_E": 8, "S_W": 8
+            }
+        elif preset_num == 4:  # Emergency Heavy
+            # More emergency vehicles
+            self.sim_thread.vehicle_types = {
+                "veh_passenger": 30,
+                "veh_bus": 10,
+                "veh_truck": 10,
+                "veh_emergency": 40,
+                "veh_motorcycle": 10
+            }
+            # More traffic on emergency routes
+            self.sim_thread.route_weights = {
+                "W_N": 15, "W_E": 5, "W_S": 15,
+                "N_W": 5, "N_E": 15, "N_S": 5,
+                "E_N": 15, "E_S": 5, "E_W": 15,
+                "S_N": 5, "S_E": 15, "S_W": 5
+            }
+        elif preset_num == 5:  # North-South Dominant
+            # High passenger and motorcycle, low truck
+            self.sim_thread.vehicle_types = {
+                "veh_passenger": 45,
+                "veh_bus": 10,
+                "veh_truck": 2,
+                "veh_emergency": 3,
+                "veh_motorcycle": 40
+            }
+            # Heavy N-S traffic
+            self.sim_thread.route_weights = {
+                "W_N": 5, "W_E": 10, "W_S": 5,
+                "N_W": 15, "N_E": 5, "N_S": 15,
+                "E_N": 15, "E_S": 5, "E_W": 10,
+                "S_N": 15, "S_E": 5, "S_W": 5
+            }
+        elif preset_num == 6:  # East-West Dominant
+            # More passenger than motorcycle
+            self.sim_thread.vehicle_types = {
+                "veh_passenger": 55,
+                "veh_bus": 12,
+                "veh_truck": 1,
+                "veh_emergency": 2,
+                "veh_motorcycle": 30
+            }
+            # Heavy E-W traffic
+            self.sim_thread.route_weights = {
+                "W_N": 10, "W_E": 15, "W_S": 10,
+                "N_W": 5, "N_E": 15, "N_S": 5,
+                "E_N": 5, "E_S": 15, "E_W": 15,
+                "S_N": 5, "S_E": 15, "S_W": 5
+            }
+        elif preset_num == 7:  # Diagonal Dominant
+            # Equal passenger and motorcycle
+            self.sim_thread.vehicle_types = {
+                "veh_passenger": 40,
+                "veh_bus": 8,
+                "veh_truck": 2,
+                "veh_emergency": 5,
+                "veh_motorcycle": 45
+            }
+            # Heavy diagonal traffic
+            self.sim_thread.route_weights = {
+                "W_N": 15, "W_E": 5, "W_S": 5,
+                "N_W": 5, "N_E": 15, "N_S": 5,
+                "E_N": 5, "E_S": 15, "E_W": 5,
+                "S_N": 5, "S_E": 5, "S_W": 15
+            }
+        elif preset_num == 8:  # Circular Flow
+            # More motorcycle than passenger
+            self.sim_thread.vehicle_types = {
+                "veh_passenger": 35,
+                "veh_bus": 7,
+                "veh_truck": 1,
+                "veh_emergency": 2,
+                "veh_motorcycle": 55
+            }
+            # Circular traffic pattern
+            self.sim_thread.route_weights = {
+                "W_N": 15, "W_E": 5, "W_S": 5,
+                "N_W": 5, "N_E": 15, "N_S": 5,
+                "E_N": 5, "E_S": 15, "E_W": 5,
+                "S_N": 5, "S_E": 5, "S_W": 15
+            }
+        
+        # Update the UI sliders
+        for vehicle_type, percentage in self.sim_thread.vehicle_types.items():
+            self.type_sliders[vehicle_type].setValue(percentage)
+            self.type_sliders[f"{vehicle_type}_label"].setText(f"{percentage}%")
+        
+        for route, weight in self.sim_thread.route_weights.items():
+            self.route_sliders[route].setValue(weight)
+            self.route_sliders[f"{route}_label"].setText(f"{weight}%")
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
