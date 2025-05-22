@@ -4,10 +4,12 @@ import timeit
 import os
 import time
 import random
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QHBoxLayout, QVBoxLayout, QPushButton, QGroupBox, QSplitter
 from PyQt5.QtCore import QThread, pyqtSignal, QObject
 from agent_communicator import AgentCommunicatorTesting
 from add_vehicle import SimulationThread, MainWindow
+from matplotlib.backends.backend_qt5agg import FigureCanvas
+from matplotlib.figure import Figure
 
 # phase codes based on environment.net.xml
 PHASE_NS_GREEN = 0  # action 0 code 00
@@ -26,12 +28,12 @@ class InteractiveSimulation(QObject):
     stats_updated = pyqtSignal(dict)
     cumulative_stats_updated = pyqtSignal(dict)
 
-    def __init__(self, Model, sumo_cmd, max_steps, green_duration, yellow_duration, 
-                 num_states, num_actions, server_url=None, agent_id=None, 
+    def __init__(self, Model, sumo_cmd, max_steps, green_duration, yellow_duration,
+                 num_states, num_actions, server_url=None, agent_id=None,
                  mapping_config=None, env_file_path=None):
         # Initialize QObject
         super().__init__()
-        
+
         self._Model = Model
         self._sumo_cmd = sumo_cmd
         self._max_steps = max_steps
@@ -41,8 +43,8 @@ class InteractiveSimulation(QObject):
         self._num_actions = num_actions
         self._reward_episode = []
         self._queue_length_episode = []
-        self._vehicle_counter = 0  
-        
+        self._vehicle_counter = 0
+
         # Define phase durations (in seconds)
         self.phase_durations = {
             0: 31,  # NS Green
@@ -54,7 +56,7 @@ class InteractiveSimulation(QObject):
             6: 15,  # EWL Green
             7: 2    # EWL Yellow
         }
-        
+
         # Simulation control
         self.running = False
         self.step = 0
@@ -69,7 +71,7 @@ class InteractiveSimulation(QObject):
         self.min_count = 1
         self.max_count = 8
         self.last_spawn_step = 0
-        
+
         # Road IDs
         self.roads = {
             'north': 'N2TL',
@@ -77,7 +79,7 @@ class InteractiveSimulation(QObject):
             'east': 'E2TL',
             'west': 'W2TL'
         }
-        
+
         # Vehicle type distribution (N-S Dominant preset)
         self.vehicle_types = {
             "veh_passenger": 45,
@@ -86,7 +88,7 @@ class InteractiveSimulation(QObject):
             "veh_emergency": 3,
             "veh_motorcycle": 40
         }
-        
+
         # Speed ranges for different vehicle types (reduced to prevent too high speeds)
         self.speed_ranges = {
             "veh_passenger": (3, 8),    # Reduced from (5, 15)
@@ -95,7 +97,7 @@ class InteractiveSimulation(QObject):
             "veh_emergency": (4, 10),   # Reduced from (8, 20)
             "veh_motorcycle": (3, 8)    # Reduced from (7, 18)
         }
-        
+
         # Route distribution (N-S Dominant preset)
         self.route_weights = {
             "W_N": 5, "W_E": 10, "W_S": 5,
@@ -103,7 +105,7 @@ class InteractiveSimulation(QObject):
             "E_N": 15, "E_S": 5, "E_W": 10,
             "S_N": 15, "S_E": 5, "S_W": 5
         }
-        
+
         # Initialize server communication if URL is provided
         self._server_url = server_url
         self._agent_id = agent_id
@@ -140,34 +142,34 @@ class InteractiveSimulation(QObject):
 
         if self._communicator:
             self._communicator.update_status("testing")
-            
+
         # Reset episode arrays
         self._reward_episode = []
         self._queue_length_episode = []
-        
+
         # Create and show the main window
         app = QApplication.instance()
         if not app:
             app = QApplication([])
         self.window = MainWindow()
-        
+
         # Connect signals to window slots
         self.step_updated.connect(self.window.update_step)
         self.vehicle_updated.connect(self.window.update_vehicles)
         self.stats_updated.connect(self.window.update_statistics)
         self.cumulative_stats_updated.connect(self.window.update_cumulative_statistics)
-        
+
         # Connect the window's start button to our simulation control
         self.window.start_button.clicked.connect(self.toggle_simulation)
-        
+
         # Connect preset selection to our distribution update method
         for i, radio in enumerate(self.window.preset_buttons):
             radio.clicked.connect(lambda checked, idx=i+1: self.update_distribution_preset(idx) if checked else None)
-        
+
         # Show window and process events
         self.window.show()
         app.processEvents()
-        
+
         # Initialize simulation variables
         self._step = 0
         self._waiting_times = {}
@@ -184,7 +186,7 @@ class InteractiveSimulation(QObject):
         while self._step < self._max_steps:
             # Process Qt events to keep UI responsive
             app.processEvents()
-            
+
             # Only run simulation if it's active
             if self.running and traci.isLoaded():
                 try:
@@ -194,7 +196,7 @@ class InteractiveSimulation(QObject):
                             current_interval = random.randint(self.min_interval, self.max_interval)
                         else:
                             current_interval = self.spawn_interval
-                            
+
                         if (self._step - self.last_spawn_step) >= current_interval:
                             self.last_spawn_step = self._step
                             if self.spawn_count_random:
@@ -261,14 +263,14 @@ class InteractiveSimulation(QObject):
                             sync_data = self._communicator.get_sync_timing()
                             if sync_data:
                                 self._adjust_timing(sync_data)
-                                
+
                 except traci.exceptions.FatalTraCIError as e:
                     print(f"TraCI error: {e}")
                     break
                 except Exception as e:
                     print(f"Error in simulation loop: {e}")
                     break
-            
+
             # Small delay to prevent CPU overuse
             time.sleep(0.01)
 
@@ -283,7 +285,7 @@ class InteractiveSimulation(QObject):
             total_reward = np.sum(self._reward_episode)
             avg_queue_length = np.mean(self._queue_length_episode) if self._queue_length_episode else 0
             total_waiting_time = np.sum(self._queue_length_episode) if self._queue_length_episode else 0
-            
+
             self._communicator.update_episode_result(
                 episode=episode,
                 reward=total_reward,
@@ -304,7 +306,7 @@ class InteractiveSimulation(QObject):
                 if not traci.isLoaded():
                     traci.start(self._sumo_cmd)
                     time.sleep(2)  # Wait for traci to be ready
-                
+
                 self.window.start_button.setText("Stop Simulation")
                 self.window.status_label.setText("Status: Running")
             except Exception as e:
@@ -326,22 +328,22 @@ class InteractiveSimulation(QObject):
                 list(self.vehicle_types.keys()),
                 weights=list(self.vehicle_types.values())
             )[0]
-            
+
             # Select route based on distribution
             route = random.choices(
                 list(self.route_weights.keys()),
                 weights=list(self.route_weights.values())
             )[0]
-            
+
             # Get speed range for vehicle type
             min_speed, max_speed = self.speed_ranges[vehicle_type]
             speed = random.uniform(min_speed, max_speed)
-            
+
             # Create unique vehicle ID using counter and larger random number
             self._vehicle_counter += 1
             random_suffix = random.randint(10000, 99999)  # Increased range
             vehicle_id = f"{vehicle_type}_{route}_{self._vehicle_counter}_{random_suffix}"
-            
+
             # Add vehicle with proper type and departure time
             traci.vehicle.add(
                 vehID=vehicle_id,
@@ -359,18 +361,18 @@ class InteractiveSimulation(QObject):
         """
         if not traci.isLoaded():
             return np.zeros(self._num_states)
-            
+
         state = np.zeros(self._num_states)
         car_list = traci.vehicle.getIDList()
-        
+
         for car_id in car_list:
             lane_pos = traci.vehicle.getLanePosition(car_id)
             lane_id = traci.vehicle.getLaneID(car_id)
-            
+
             # x is the position of the car in the lane
             lane_cell = int(lane_pos / 7.5)
-            
-            # Find the lane where the car is located 
+
+            # Find the lane where the car is located
             # x2TL_3 are the "turn left only" lanes
             if lane_id == "W2TL_0" or lane_id == "W2TL_1" or lane_id == "W2TL_2":
                 lane_group = 0
@@ -406,7 +408,7 @@ class InteractiveSimulation(QObject):
         """
         if not traci.isLoaded():
             return 0
-            
+
         incoming_roads = ["E2TL", "N2TL", "W2TL", "S2TL"]
         car_list = traci.vehicle.getIDList()
         for car_id in car_list:
@@ -416,7 +418,7 @@ class InteractiveSimulation(QObject):
                 self._waiting_times[car_id] = wait_time
             else:
                 if car_id in self._waiting_times: # a car that was tracked has cleared the intersection
-                    del self._waiting_times[car_id] 
+                    del self._waiting_times[car_id]
         total_waiting_time = sum(self._waiting_times.values())
         return total_waiting_time
 
@@ -432,7 +434,7 @@ class InteractiveSimulation(QObject):
         """
         if not traci.isLoaded():
             return
-            
+
         yellow_phase_code = old_action * 2 + 1
         traci.trafficlight.setPhase("TL", yellow_phase_code)
         traci.trafficlight.setPhaseDuration("TL", self.phase_durations[yellow_phase_code])
@@ -443,7 +445,7 @@ class InteractiveSimulation(QObject):
         """
         if not traci.isLoaded():
             return
-            
+
         if action_number == 0:
             traci.trafficlight.setPhase("TL", PHASE_NS_GREEN)
             traci.trafficlight.setPhaseDuration("TL", self.phase_durations[PHASE_NS_GREEN])
@@ -463,16 +465,19 @@ class InteractiveSimulation(QObject):
         """
         if not traci.isLoaded():
             return
-            
+
         if (self._step + steps_todo) >= self._max_steps:  # do not do more steps than the maximum allowed number of steps
             steps_todo = self._max_steps - self._step
 
         while steps_todo > 0:
             traci.simulationStep()  # simulate 1 step in sumo
-            self._step += 1 # update the step counter
+            self._step += 1  # update the step counter
             steps_todo -= 1
             queue_length = self._get_queue_length()
             self._queue_length_episode.append(queue_length)
+            
+            # Emit step update signal
+            self.step_updated.emit(self._step)
 
     def _get_queue_length(self):
         """
@@ -480,7 +485,7 @@ class InteractiveSimulation(QObject):
         """
         if not traci.isLoaded():
             return 0
-            
+
         halt_N = traci.edge.getLastStepHaltingNumber("N2TL")
         halt_S = traci.edge.getLastStepHaltingNumber("S2TL")
         halt_E = traci.edge.getLastStepHaltingNumber("E2TL")
@@ -504,7 +509,7 @@ class InteractiveSimulation(QObject):
         if self._communicator:
             self._communicator.update_status("test_terminated")
             self._communicator.stop_background_sync()
-            self._communicator.sync_with_server()  # Final sync 
+            self._communicator.sync_with_server()  # Final sync
 
     def update_distribution_preset(self, preset_num):
         """Update vehicle type and route distributions based on preset number"""
@@ -619,13 +624,13 @@ class InteractiveSimulation(QObject):
                 "N_W": 5, "N_E": 15, "N_S": 5,
                 "E_N": 5, "E_S": 15, "E_W": 5,
                 "S_N": 5, "S_E": 5, "S_W": 15
-            } 
+            }
 
     def get_vehicle_data(self):
         """Get current vehicle data for UI update"""
         if not traci.isLoaded():
             return {}
-        
+
         vehicles = {}
         for vid in traci.vehicle.getIDList():
             try:
@@ -638,14 +643,14 @@ class InteractiveSimulation(QObject):
                 }
             except Exception as e:
                 print(f"Error getting vehicle data for {vid}: {e}")
-        
+
         return vehicles
 
     def get_statistics(self):
         """Get current statistics for UI update"""
         if not traci.isLoaded():
             return {}
-        
+
         stats = {}
         directions = {
             "north": "N2TL",
@@ -653,20 +658,26 @@ class InteractiveSimulation(QObject):
             "east": "E2TL",
             "west": "W2TL"
         }
-        
+
         for direction, edge in directions.items():
             stats[direction] = {
                 'count': traci.edge.getLastStepVehicleNumber(edge),
                 'queue': traci.edge.getLastStepHaltingNumber(edge),
                 'speed': max(0, traci.edge.getLastStepMeanSpeed(edge))
             }
-        
+
         try:
             stats['light_phase'] = traci.trafficlight.getPhase("TL")
         except:
             stats['light_phase'] = -1
-        
+
         return stats
+
+    def moving_average(self, data, window_size=5):
+        """Calculate moving average of data with given window size"""
+        if len(data) < window_size:
+            return data
+        return np.convolve(data, np.ones(window_size)/window_size, mode='valid')
 
     def get_cumulative_statistics(self):
         """Get cumulative statistics for UI update"""
@@ -692,18 +703,18 @@ class InteractiveSimulation(QObject):
 
             # Get current vehicle list
             vehicle_list = traci.vehicle.getIDList()
-            
+
             # Calculate total statistics
             total_queue = sum(self._queue_length_episode) if self._queue_length_episode else 0
             total_waiting_time = sum(self._waiting_times.values()) if self._waiting_times else 0
             total_vehicles = len(vehicle_list)
             max_queue = max(self._queue_length_episode) if self._queue_length_episode else 0
             max_waiting_time = max(self._waiting_times.values()) if self._waiting_times else 0
-            
+
             # Calculate averages
             avg_queue = np.mean(self._queue_length_episode) if self._queue_length_episode else 0
             avg_waiting_time = np.mean(list(self._waiting_times.values())) if self._waiting_times else 0
-            
+
             stats = {
                 'total_queue': total_queue,
                 'total_waiting_time': total_waiting_time,
@@ -714,23 +725,24 @@ class InteractiveSimulation(QObject):
                 'average_queue': avg_queue,
                 'average_waiting_time': avg_waiting_time,
                 'average_length': 0,  # You may want to calculate this based on your needs
-                'road_stats': {}
+                'road_stats': {},
+                'current_step': self._step  # Add current step to stats
             }
-            
+
             # Add per-road statistics
             for road_id in ["N2TL", "S2TL", "E2TL", "W2TL"]:
                 try:
                     # Get vehicles on this road
                     road_vehicles = [vid for vid in vehicle_list if traci.vehicle.getRoadID(vid) == road_id]
-                    
+
                     # Calculate road-specific statistics
                     current_queue = traci.edge.getLastStepHaltingNumber(road_id)
                     current_vehicles = traci.edge.getLastStepVehicleNumber(road_id)
                     current_waiting_time = sum(traci.vehicle.getWaitingTime(vid) for vid in road_vehicles)
-                    
+
                     # Calculate averages
                     avg_wait = np.mean([traci.vehicle.getWaitingTime(vid) for vid in road_vehicles]) if road_vehicles else 0
-                    
+
                     stats['road_stats'][road_id] = {
                         'total_queue': current_queue,
                         'total_waiting_time': current_waiting_time,
@@ -749,9 +761,9 @@ class InteractiveSimulation(QObject):
                 except Exception as e:
                     print(f"Error calculating statistics for road {road_id}: {e}")
                     stats['road_stats'][road_id] = self._get_empty_road_stats()
-            
+
             return stats
-            
+
         except Exception as e:
             print(f"Error in get_cumulative_statistics: {e}")
             return {
@@ -769,7 +781,8 @@ class InteractiveSimulation(QObject):
                     'S2TL': self._get_empty_road_stats(),
                     'E2TL': self._get_empty_road_stats(),
                     'W2TL': self._get_empty_road_stats()
-                }
+                },
+                'current_step': self._step  # Add current step to error case as well
             }
 
     def _get_empty_road_stats(self):
