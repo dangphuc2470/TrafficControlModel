@@ -7,7 +7,7 @@ import random
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QHBoxLayout, QVBoxLayout, QPushButton, QGroupBox, QSplitter
 from PyQt5.QtCore import QThread, pyqtSignal, QObject
 from agent_communicator import AgentCommunicatorTesting
-from add_vehicle import SimulationThread, MainWindow
+from main_window import MainWindow
 from matplotlib.backends.backend_qt5agg import FigureCanvas
 from matplotlib.figure import Figure
 
@@ -45,6 +45,11 @@ class InteractiveSimulation(QObject):
         self._queue_length_episode = []
         self._vehicle_counter = 0
 
+        # Add vehicle tracking
+        self._active_vehicles = set()  # Track vehicles currently in simulation
+        self._exited_vehicles = {}  # Track vehicles that have exited and their destinations
+        self._incoming_vehicles = []  # Track vehicles that should be spawned
+
         # Define phase durations (in seconds)
         self.phase_durations = {
             0: 31,  # NS Green
@@ -60,7 +65,7 @@ class InteractiveSimulation(QObject):
         # Simulation control
         self.running = False
         self.step = 0
-        self.speed = 5.0
+        self.speed = 2.0
         self.auto_spawn = True
         self.spawn_interval = 4
         self.spawn_interval_random = True
@@ -72,12 +77,20 @@ class InteractiveSimulation(QObject):
         self.max_count = 8
         self.last_spawn_step = 0
 
-        # Road IDs
+        # Road IDs and their connections
         self.roads = {
             'north': 'N2TL',
             'south': 'S2TL',
             'east': 'E2TL',
             'west': 'W2TL'
+        }
+
+        # Map road IDs to connected intersections
+        self.road_connections = {
+            'N2TL': 'agent2',  # North road connects to agent2
+            'S2TL': 'agent3',  # South road connects to agent3
+            'E2TL': 'agent4',  # East road connects to agent4
+            'W2TL': 'agent1'   # West road connects to agent1
         }
 
         # Vehicle type distribution (N-S Dominant preset)
@@ -158,6 +171,7 @@ class InteractiveSimulation(QObject):
         self.vehicle_updated.connect(self.window.update_vehicles)
         self.stats_updated.connect(self.window.update_statistics)
         self.cumulative_stats_updated.connect(self.window.update_cumulative_statistics)
+        self.window.auto_spawn_check.stateChanged.connect(self.toggle_auto_spawn)
 
         # Connect the window's start button to our simulation control
         self.window.start_button.clicked.connect(self.toggle_simulation)
@@ -199,12 +213,18 @@ class InteractiveSimulation(QObject):
 
                         if (self._step - self.last_spawn_step) >= current_interval:
                             self.last_spawn_step = self._step
+                            # Calculate count before using it
                             if self.spawn_count_random:
                                 count = random.randint(self.min_count, self.max_count)
                             else:
                                 count = self.spawn_count
+                            
+                            # Spawn vehicles
                             for _ in range(count):
                                 self.spawn_random_vehicle()
+                            print(f"Spawned {count} vehicles")
+                    else:
+                        print("Auto spawn is disabled")
 
                     # Get current state of the intersection
                     current_state = self._get_state()
@@ -237,6 +257,10 @@ class InteractiveSimulation(QObject):
                     self.vehicle_updated.emit(self.get_vehicle_data())
                     self.stats_updated.emit(self.get_statistics())
                     self.cumulative_stats_updated.emit(self.get_cumulative_statistics())
+
+                    # Track vehicles and handle incoming vehicles
+                    self._track_vehicles()
+                    self._check_incoming_vehicles()
 
                     # Update server with state and get new sync timing
                     if self._communicator:
@@ -304,8 +328,21 @@ class InteractiveSimulation(QObject):
             try:
                 # Initialize SUMO if not already running
                 if not traci.isLoaded():
-                    traci.start(self._sumo_cmd)
-                    time.sleep(2)  # Wait for traci to be ready
+                    try:
+                        traci.start(self._sumo_cmd)
+                        time.sleep(2)  # Wait for traci to be ready
+                    except traci.exceptions.FatalTraCIError as e:
+                        print(f"Error starting SUMO: {e}")
+                        self.running = False
+                        self.window.start_button.setText("Start Simulation")
+                        self.window.status_label.setText("Status: Error starting SUMO")
+                        return
+                    except Exception as e:
+                        print(f"Unexpected error starting SUMO: {e}")
+                        self.running = False
+                        self.window.start_button.setText("Start Simulation")
+                        self.window.status_label.setText("Status: Error starting SUMO")
+                        return
 
                 self.window.start_button.setText("Stop Simulation")
                 self.window.status_label.setText("Status: Running")
@@ -319,6 +356,14 @@ class InteractiveSimulation(QObject):
             self.running = False
             self.window.start_button.setText("Start Simulation")
             self.window.status_label.setText("Status: Stopped")
+            # Close SUMO
+            if traci.isLoaded():
+                try:
+                    traci.close()
+                except traci.exceptions.FatalTraCIError as e:
+                    print(f"Error closing SUMO: {e}")
+                except Exception as e:
+                    print(f"Unexpected error closing SUMO: {e}")
 
     def spawn_random_vehicle(self):
         """Spawn a random vehicle in the simulation"""
@@ -459,6 +504,176 @@ class InteractiveSimulation(QObject):
             traci.trafficlight.setPhase("TL", PHASE_EWL_GREEN)
             traci.trafficlight.setPhaseDuration("TL", self.phase_durations[PHASE_EWL_GREEN])
 
+    def _track_vehicles(self):
+        """Track vehicles that enter and exit the simulation"""
+        if not traci.isLoaded():
+            return
+
+        try:
+            # Get current vehicles
+            current_vehicles = set(traci.vehicle.getIDList())
+            
+            # Find vehicles that have exited
+            exited = self._active_vehicles - current_vehicles
+            for vehicle_id in exited:
+                try:
+                    # Get the last road the vehicle was on
+                    last_road = traci.vehicle.getRoadID(vehicle_id)
+                    last_position = traci.vehicle.getPosition(vehicle_id)
+                    last_speed = traci.vehicle.getSpeed(vehicle_id)
+                    last_lane = traci.vehicle.getLaneIndex(vehicle_id)
+                    
+                    # Determine if vehicle exited through a boundary
+                    is_boundary_exit = False
+                    exit_direction = None
+                    
+                    # Check if vehicle exited through a boundary road
+                    if last_road in self.roads.values():
+                        # Get the road's position and dimensions
+                        road_shape = traci.edge.getShape(last_road)
+                        if road_shape:
+                            start_pos, end_pos = road_shape[0], road_shape[-1]
+                            
+                            # Calculate distance to road endpoints
+                            dist_to_start = ((last_position[0] - start_pos[0])**2 + 
+                                           (last_position[1] - start_pos[1])**2)**0.5
+                            dist_to_end = ((last_position[0] - end_pos[0])**2 + 
+                                         (last_position[1] - end_pos[1])**2)**0.5
+                            
+                            # If vehicle is close to either endpoint, consider it a boundary exit
+                            if dist_to_start < 5.0 or dist_to_end < 5.0:
+                                is_boundary_exit = True
+                                # Determine exit direction based on road and position
+                                if last_road == 'N2TL':
+                                    exit_direction = 'north'
+                                elif last_road == 'S2TL':
+                                    exit_direction = 'south'
+                                elif last_road == 'E2TL':
+                                    exit_direction = 'east'
+                                elif last_road == 'W2TL':
+                                    exit_direction = 'west'
+                    
+                    # Store vehicle info
+                    self._exited_vehicles[vehicle_id] = {
+                        'type': traci.vehicle.getTypeID(vehicle_id),
+                        'route': traci.vehicle.getRouteID(vehicle_id),
+                        'speed': last_speed,
+                        'lane': last_lane,
+                        'position': last_position,
+                        'is_boundary_exit': is_boundary_exit,
+                        'exit_direction': exit_direction,
+                        'destination': self.road_connections.get(last_road)
+                    }
+                    
+                    # Log vehicle exit
+                    print(f"Vehicle {vehicle_id} exited through {'boundary' if is_boundary_exit else 'internal'} " +
+                          f"at {last_position} on road {last_road}")
+                    
+                    # Send vehicle info to server if connected and it's a boundary exit
+                    if self._communicator and is_boundary_exit and exit_direction:
+                        self._communicator.send_state(None, self._step, {
+                            'vehicle_transfer': {
+                                'vehicle_id': vehicle_id,
+                                'type': traci.vehicle.getTypeID(vehicle_id),
+                                'route': traci.vehicle.getRouteID(vehicle_id),
+                                'speed': last_speed,
+                                'lane': last_lane,
+                                'position': last_position,
+                                'exit_direction': exit_direction,
+                                'from_agent': self._agent_id,
+                                'to_agent': self.road_connections.get(last_road)
+                            }
+                        })
+                except traci.exceptions.TraCIException:
+                    # Vehicle is no longer in simulation, skip it
+                    continue
+                except Exception as e:
+                    print(f"Error tracking exited vehicle {vehicle_id}: {e}")
+            
+            # Update active vehicles
+            self._active_vehicles = current_vehicles
+        except Exception as e:
+            print(f"Error in _track_vehicles: {e}")
+
+    def _check_incoming_vehicles(self):
+        """Check for and spawn incoming vehicles from other intersections"""
+        if not traci.isLoaded() or not self._communicator:
+            return
+
+        try:
+            # Get any incoming vehicles from the server
+            response = self._communicator.get_coordination_data()
+            if response and 'incoming_vehicles' in response:
+                for vehicle_data in response['incoming_vehicles']:
+                    if vehicle_data['to_agent'] == self._agent_id:
+                        # Add to incoming vehicles list with spawn position
+                        entry_road = None
+                        entry_lane = 0
+                        
+                        # Determine entry road based on exit direction from previous intersection
+                        if vehicle_data.get('exit_direction'):
+                            if vehicle_data['exit_direction'] == 'north':
+                                entry_road = 'S2TL'
+                            elif vehicle_data['exit_direction'] == 'south':
+                                entry_road = 'N2TL'
+                            elif vehicle_data['exit_direction'] == 'east':
+                                entry_road = 'W2TL'
+                            elif vehicle_data['exit_direction'] == 'west':
+                                entry_road = 'E2TL'
+                        
+                        if entry_road:
+                            # Get road shape to determine spawn position
+                            road_shape = traci.edge.getShape(entry_road)
+                            if road_shape:
+                                # Spawn at the start of the road
+                                spawn_pos = road_shape[0]
+                                
+                                # Add spawn information to vehicle data
+                                vehicle_data['spawn_road'] = entry_road
+                                vehicle_data['spawn_lane'] = entry_lane
+                                vehicle_data['spawn_position'] = spawn_pos
+                                
+                                # Add to incoming vehicles list
+                                self._incoming_vehicles.append(vehicle_data)
+                                print(f"Queued incoming vehicle {vehicle_data['vehicle_id']} for spawn on {entry_road}")
+            
+            # Spawn any incoming vehicles
+            while self._incoming_vehicles:
+                vehicle_data = self._incoming_vehicles.pop(0)
+                try:
+                    # Create route for the vehicle
+                    route_id = f"route_{vehicle_data['vehicle_id']}"
+                    route_edges = [vehicle_data['spawn_road']]
+                    
+                    # Add destination edge based on original route
+                    if 'route' in vehicle_data:
+                        route_parts = vehicle_data['route'].split()
+                        if len(route_parts) > 1:
+                            route_edges.append(route_parts[1])
+                    
+                    # Add the route
+                    traci.route.add(route_id, route_edges)
+                    
+                    # Spawn the vehicle
+                    traci.vehicle.add(
+                        vehID=vehicle_data['vehicle_id'],
+                        routeID=route_id,
+                        typeID=vehicle_data['type'],
+                        departLane=str(vehicle_data['spawn_lane']),
+                        departSpeed=str(vehicle_data['speed']),
+                        departPos="0"
+                    )
+                    
+                    print(f"Spawned incoming vehicle {vehicle_data['vehicle_id']} on {vehicle_data['spawn_road']}")
+                    
+                except Exception as e:
+                    print(f"Error spawning incoming vehicle: {e}")
+                    # Put the vehicle back in the queue if there was an error
+                    self._incoming_vehicles.insert(0, vehicle_data)
+                    break
+        except Exception as e:
+            print(f"Error checking incoming vehicles: {e}")
+
     def _simulate(self, steps_todo):
         """
         Proceed in the simulation in sumo
@@ -470,14 +685,33 @@ class InteractiveSimulation(QObject):
             steps_todo = self._max_steps - self._step
 
         while steps_todo > 0:
-            traci.simulationStep()  # simulate 1 step in sumo
-            self._step += 1  # update the step counter
-            steps_todo -= 1
-            queue_length = self._get_queue_length()
-            self._queue_length_episode.append(queue_length)
-            
-            # Emit step update signal
-            self.step_updated.emit(self._step)
+            try:
+                traci.simulationStep()  # simulate 1 step in sumo
+                self._step += 1  # update the step counter
+                steps_todo -= 1
+                queue_length = self._get_queue_length()
+                self._queue_length_episode.append(queue_length)
+                
+                # Only handle vehicle tracking and spawning if auto_spawn is enabled
+                if self.auto_spawn:
+                    # Track vehicles and handle incoming vehicles
+                    self._track_vehicles()
+                    self._check_incoming_vehicles()
+                
+                # Emit step update signal
+                self.step_updated.emit(self._step)
+            except traci.exceptions.FatalTraCIError as e:
+                print(f"TraCI error during simulation step: {e}")
+                self.running = False
+                self.window.start_button.setText("Start Simulation")
+                self.window.status_label.setText("Status: Error - Connection lost")
+                break
+            except Exception as e:
+                print(f"Unexpected error during simulation step: {e}")
+                self.running = False
+                self.window.start_button.setText("Start Simulation")
+                self.window.status_label.setText("Status: Error - Unexpected error")
+                break
 
     def _get_queue_length(self):
         """
@@ -506,10 +740,31 @@ class InteractiveSimulation(QObject):
 
     def cleanup(self):
         """Clean up when done"""
+        # Stop the simulation
+        self.running = False
+        
+        # Close SUMO if it's running
+        if traci.isLoaded():
+            try:
+                traci.close()
+            except traci.exceptions.FatalTraCIError as e:
+                print(f"Error closing SUMO: {e}")
+            except Exception as e:
+                print(f"Unexpected error closing SUMO: {e}")
+        
+        # Update server status if connected
         if self._communicator:
-            self._communicator.update_status("test_terminated")
-            self._communicator.stop_background_sync()
-            self._communicator.sync_with_server()  # Final sync
+            try:
+                self._communicator.update_status("test_terminated")
+                self._communicator.stop_background_sync()
+                self._communicator.sync_with_server()  # Final sync
+            except Exception as e:
+                print(f"Error updating server status: {e}")
+
+    def closeEvent(self, event):
+        """Handle window close event"""
+        self.cleanup()
+        event.accept()
 
     def update_distribution_preset(self, preset_num):
         """Update vehicle type and route distributions based on preset number"""
@@ -698,7 +953,8 @@ class InteractiveSimulation(QObject):
                         'S2TL': self._get_empty_road_stats(),
                         'E2TL': self._get_empty_road_stats(),
                         'W2TL': self._get_empty_road_stats()
-                    }
+                    },
+                    'current_step': self._step
                 }
 
             # Get current vehicle list
@@ -715,18 +971,35 @@ class InteractiveSimulation(QObject):
             avg_queue = np.mean(self._queue_length_episode) if self._queue_length_episode else 0
             avg_waiting_time = np.mean(list(self._waiting_times.values())) if self._waiting_times else 0
 
+            # Initialize arrays for plot data
+            steps = np.array(range(self._step + 1))
+            queue_data = np.zeros(self._step + 1)
+            wait_data = np.zeros(self._step + 1)
+            length_data = np.zeros(self._step + 1)
+
+            # Fill arrays with actual data
+            for i, q in enumerate(self._queue_length_episode):
+                if i < len(queue_data):
+                    queue_data[i] = q
+
             stats = {
                 'total_queue': total_queue,
                 'total_waiting_time': total_waiting_time,
                 'total_vehicles': total_vehicles,
                 'max_queue': max_queue,
                 'max_waiting_time': max_waiting_time,
-                'total_length': 0,  # You may want to calculate this based on your needs
+                'total_length': 0,
                 'average_queue': avg_queue,
                 'average_waiting_time': avg_waiting_time,
-                'average_length': 0,  # You may want to calculate this based on your needs
+                'average_length': 0,
                 'road_stats': {},
-                'current_step': self._step  # Add current step to stats
+                'current_step': self._step,
+                'plot_data': {
+                    'steps': steps,
+                    'queue': queue_data,
+                    'wait': wait_data,
+                    'length': length_data
+                }
             }
 
             # Add per-road statistics
@@ -749,14 +1022,14 @@ class InteractiveSimulation(QObject):
                         'total_vehicles': current_vehicles,
                         'max_queue': current_queue,
                         'max_waiting_time': max((traci.vehicle.getWaitingTime(vid) for vid in road_vehicles), default=0),
-                        'total_length': 0,  # You may want to calculate this based on your needs
+                        'total_length': 0,
                         'current_queue': current_queue,
                         'current_waiting_time': current_waiting_time,
                         'current_vehicles': current_vehicles,
-                        'current_length': 0,  # You may want to calculate this based on your needs
+                        'current_length': 0,
                         'average_queue': current_queue,
                         'average_waiting_time': avg_wait,
-                        'average_length': 0  # You may want to calculate this based on your needs
+                        'average_length': 0
                     }
                 except Exception as e:
                     print(f"Error calculating statistics for road {road_id}: {e}")
@@ -782,7 +1055,13 @@ class InteractiveSimulation(QObject):
                     'E2TL': self._get_empty_road_stats(),
                     'W2TL': self._get_empty_road_stats()
                 },
-                'current_step': self._step  # Add current step to error case as well
+                'current_step': self._step,
+                'plot_data': {
+                    'steps': np.array([0]),
+                    'queue': np.array([0]),
+                    'wait': np.array([0]),
+                    'length': np.array([0])
+                }
             }
 
     def _get_empty_road_stats(self):
@@ -802,3 +1081,8 @@ class InteractiveSimulation(QObject):
             'average_waiting_time': 0,
             'average_length': 0
         } 
+    
+    def toggle_auto_spawn(self, state):
+        """Toggle auto-spawn state based on checkbox"""
+        self.auto_spawn = bool(state)
+        print(f"Auto-spawn {'enabled' if self.auto_spawn else 'disabled'}") 
